@@ -3,7 +3,7 @@ import bcrypt
 import os
 
 from flask import Flask, render_template, flash, redirect, url_for, jsonify, request
-from flask_login import LoginManager, logout_user, login_user, current_user
+from flask_login import LoginManager, logout_user, login_user, current_user, login_required
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
@@ -95,6 +95,16 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+
+@app.route('/update-cfg', methods=['POST'])
+@login_required
+def update_settings():
+    data = request.json
+    for cfg in data:
+        Settings.query.filter_by(key=cfg['name']).first().value = cfg['value']
+    db.session.commit()
+    return jsonify({"response": 1})
 
 
 def init_app():

@@ -13,7 +13,7 @@
     <link href="{{ url_for('static', filename='css/style.css') }}?ver={{ ver }}" rel=stylesheet type=text/css media="screen,projection">
 </head>
 <body>
-<div class="cover-container text-center d-flex w-100 h-100 p-3 mx-auto flex-column">
+<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
     <header class="masthead mb-auto">
         <div class="inner">
             <h3 class="masthead-brand">{{ app_title }}</h3>
@@ -23,22 +23,20 @@
         </div>
     </header>
 
-    <main role="main" class="inner cover">
+    <main role="main" class="inner cover container">
         {% if current_user and current_user.is_authenticated %}
-            <form method=post class="upload-file" action="/upload-file" enctype=multipart/form-data style="display: none">
-                <input type=file name=file>
-                <input type=submit value=Upload>
-            </form>
-            <h3 class="cover-heading notify"></h3>
-            <div class="text-left">
+            <div class="settings-list">
+                <h2>Настройки:</h2>
                 {% for cfg in settings %}
-                    <div class="form-group">
-                        <label for="{{ cfg.key }}">{{ cfg.desc }}</label>
-                        <input type="text" class="form-control" id="{{ cfg.key }}" value="{{ cfg.value if cfg.value }}">
+                    <div class="form-group row">
+                        <label class="col col-form-label">{{- cfg.desc -}}:
+                            <input type="text" class="form-control" name="{{ cfg.key }}" value="{{ cfg.value if cfg.value }}">
+                        </label>
                     </div>
                 {% endfor %}
-                <p class="lead text-center">
-                    <button type="button" class="btn btn-light btn-save-cfg">Сохранить</button>
+                <h3 class="cover-heading notify text-center">Загрузка..</h3>
+                <p class="lead text-right">
+                    <button type="button" class="btn btn-success btn-save-cfg">Сохранить</button>
                 </p>
             </div>
         {% else %}
@@ -47,7 +45,7 @@
         {% endif %}
     </main>
 
-    <footer class="mastfoot mt-auto">
+    <footer class="mastfoot mt-auto text-center">
         <div class="inner">
             <p>{{ app_name }} created by <a href="https://flionic.ml">@flionic</a></p>
         </div>
@@ -88,33 +86,28 @@
     <script type="text/javascript">
         $(document).ready(function () {
             $('.notify').hide();
-
             $('.btn-save-cfg').click(function (event) {
-                var btn = $(this), notify = $('.notify'), fid = $(this).attr('id'), params;
+                var btn = $(this), notify = $('.notify');
                 notify.text('Загрузка...');
                 notify.fadeIn(50);
                 btn.fadeOut(50);
-                if (fid === 'settings-main') {
-                    params = {};
-                    var target = $(this).attr('data-target'), f_data = $(this).find('[' + target + ']');
-                    for (var i = 0; i < f_data['length']; i++) params[$(f_data[i]).attr(target)] = $(f_data[i]).val();
-                }
+                {#TODO написать универнсальный аякс #}
                 $.ajax({
-                    url: '/update-cfg' + $(this).attr('id'),
+                    url: '/update-cfg',
                     type: "POST",
-                    data: JSON.stringify(params),
+                    data: JSON.stringify($('.settings-list input').serializeArray()),
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
-                    password: 'test',
-                    success: function () {
+                    success: function (data) {
                         notify.addClass('text-success');
                         notify.text('Сохранено');
                     },
                     error: function (data) {
-                        notify.addClass('text-warning');
-                        notify.text('Ошибка ' + data.status + ': ' + data.statusText);
+                        console.log(data);
+                        notify.addClass('text-danger');
+                        notify.text('Ошибка ' + data.status + ': ' + data.responseText['error_msg']);
                     },
-                    complete: function () {
+                    complete: function (data) {
                         btn.fadeIn(50);
                     }
                 });
