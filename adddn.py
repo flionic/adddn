@@ -16,7 +16,33 @@ app.config['APP_TITLE'] = 'Add domains'
 app.config['VERSION'] = '0.0.1'
 app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY', '7-DEV_MODE_KEY-7')
 
+db_link = 'sqlite:///' + os.path.join(basedir, 'main.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = db_link
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+
+class Settings(db.Model):
+    key = db.Column(db.String(24), primary_key=True, unique=True, nullable=False)
+    value = db.Column(db.Text)
+
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+
+    def __repr__(self):
+        return "'%s': '%s'" % (self.key, self.value)
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+def init_app():
+    db.create_all()
+    # os.path.exists('main.db')
+
+
+init_app()
+
