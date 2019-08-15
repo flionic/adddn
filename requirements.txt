@@ -1,4 +1,8 @@
+requests
 setproctitle
+redis
+bcrypt
 flask
 flask-sqlalchemy
-redis
+flask-session
+flask-login
