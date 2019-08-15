@@ -43,10 +43,12 @@ def unauthorized_handler():
 class Settings(db.Model):
     key = db.Column(db.String(24), primary_key=True, unique=True, nullable=False)
     value = db.Column(db.Text)
+    desc = db.Column(db.Text)
 
-    def __init__(self, key, value):
+    def __init__(self, key, value, desc=None):
         self.key = key
         self.value = value
+        self.desc = desc if desc else key
 
     @staticmethod
     def is_authenticated():
@@ -70,7 +72,8 @@ class Settings(db.Model):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    settings = Settings.query.offset(2).all() if current_user.is_authenticated else None
+    return render_template('index.html', settings=settings)
 
 
 @app.route('/login', methods=['POST'])
