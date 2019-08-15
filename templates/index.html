@@ -29,7 +29,7 @@
                 <input type=file name=file>
                 <input type=submit value=Upload>
             </form>
-            <h3 class="cover-heading msg-wait">Ждите...</h3>
+            <h3 class="cover-heading notify"></h3>
             <div class="text-left">
                 {% for cfg in settings %}
                     <div class="form-group">
@@ -38,7 +38,7 @@
                     </div>
                 {% endfor %}
                 <p class="lead text-center">
-                    <button type="button" class="btn btn-light btn-upload">Сохранить</button>
+                    <button type="button" class="btn btn-light btn-save-cfg">Сохранить</button>
                 </p>
             </div>
         {% else %}
@@ -87,14 +87,36 @@
 {% if current_user.is_authenticated %}
     <script type="text/javascript">
         $(document).ready(function () {
-            $('.msg-wait').hide();
-            $('.btn-upload').click(function () {
-                console.log('clicked');
-                $('.upload-file :file').click();
-                $('.upload-file :file').on('change', function () {
-                    $('.upload-file :submit').click();
-                    $('.btn-upload').fadeOut();
-                    $('.msg-wait').fadeIn();
+            $('.notify').hide();
+
+            $('.btn-save-cfg').click(function (event) {
+                var btn = $(this), notify = $('.notify'), fid = $(this).attr('id'), params;
+                notify.text('Загрузка...');
+                notify.fadeIn(50);
+                btn.fadeOut(50);
+                if (fid === 'settings-main') {
+                    params = {};
+                    var target = $(this).attr('data-target'), f_data = $(this).find('[' + target + ']');
+                    for (var i = 0; i < f_data['length']; i++) params[$(f_data[i]).attr(target)] = $(f_data[i]).val();
+                }
+                $.ajax({
+                    url: '/update-cfg' + $(this).attr('id'),
+                    type: "POST",
+                    data: JSON.stringify(params),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    password: 'test',
+                    success: function () {
+                        notify.addClass('text-success');
+                        notify.text('Сохранено');
+                    },
+                    error: function (data) {
+                        notify.addClass('text-warning');
+                        notify.text('Ошибка ' + data.status + ': ' + data.statusText);
+                    },
+                    complete: function () {
+                        btn.fadeIn(50);
+                    }
                 });
             });
         });
