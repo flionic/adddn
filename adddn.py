@@ -2,6 +2,7 @@
 import os
 
 from flask import Flask, render_template
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
 
 app = Flask(__name__, instance_relative_config=True)
