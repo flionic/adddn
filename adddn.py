@@ -112,16 +112,30 @@ def update_settings():
 @app.route('/add-domain', methods=['POST'])
 @login_required
 def push_domain():
-    return jsonify({"error_msg": 'Не удалось авторизироваться в CloudFlare'}), 500
+    print(request.json)
+    # return jsonify({"error_msg": 'Не удалось авторизироваться в CloudFlare'}), 500
 
     s = open(Settings.query.filter_by(key='pd_cfg_path').first().value).read()
-    s = s.replace(Settings.query.filter_by(key='cf_zone_name').first().value, request.json['new_domain'])
-    f = open(f"/var/nginx/sites-enabled/{request.json['new_domain']}.conf", 'w')
+    # s = s.replace(Settings.query.filter_by(key='cf_zone_name').first().value, request.json['new_domain'])
+    s = s.replace('TEMPLATE_DOMAIN', f"{request.json['domain_name']}.{Settings.query.filter_by(key='cf_zone_name').first().value}")
+    f = open(f"/etc/nginx/sites-enabled/{request.json['domain_name']}.{Settings.query.filter_by(key='cf_zone_name').first().value}.conf", 'w')
     f.write(s)
     f.close()
     # shutil.copy('/etc/nginx/sites-enabled/link.conf', '/var/www/adddn/')
     # TODO: SSL CERTBOT !!! # certbot --nginx -n certonly --cert-name adddn.ml -d adddn.ml,1.testadn.ml,2.testadn.ml
+    import subprocess
     subprocess.call('service nginx reload', shell=True)
+
+    import CloudFlare
+    email = Settings.query.filter_by(key='cf_email').first().value
+    token = Settings.query.filter_by(key='cf_token').first().value
+    certtoken = Settings.query.filter_by(key='cf_ca_token').first().value
+    cf = CloudFlare.CloudFlare(email=email, token=token, certtoken=certtoken)
+    zone_id = Settings.query.filter_by(key='cf_zone_id').first().value
+    dns_test = {'name': request.json['domain_name'], 'type': 'A', 'content': request.json['domain_ip'], 'proxied': True}
+    cf.zones.dns_records.post(zone_id, data=dns_test)
+
+    return jsonify({"response": 1})
 
 
 def init_app():
