@@ -1,4 +1,6 @@
 #!/usr/bin/env python3.7
+import shutil
+
 import bcrypt
 import os
 
@@ -105,6 +107,21 @@ def update_settings():
         Settings.query.filter_by(key=cfg['name']).first().value = cfg['value']
     db.session.commit()
     return jsonify({"response": 1})
+
+
+@app.route('/add-domain', methods=['POST'])
+@login_required
+def push_domain():
+    return jsonify({"error_msg": 'Не удалось авторизироваться в CloudFlare'}), 500
+
+    s = open(Settings.query.filter_by(key='pd_cfg_path').first().value).read()
+    s = s.replace(Settings.query.filter_by(key='cf_zone_name').first().value, request.json['new_domain'])
+    f = open(f"/var/nginx/sites-enabled/{request.json['new_domain']}.conf", 'w')
+    f.write(s)
+    f.close()
+    # shutil.copy('/etc/nginx/sites-enabled/link.conf', '/var/www/adddn/')
+    # TODO: SSL CERTBOT !!! # certbot --nginx -n certonly --cert-name adddn.ml -d adddn.ml,1.testadn.ml,2.testadn.ml
+    subprocess.call('service nginx reload', shell=True)
 
 
 def init_app():

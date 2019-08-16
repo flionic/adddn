@@ -34,9 +34,33 @@
                         </label>
                     </div>
                 {% endfor %}
-                <h3 class="cover-heading notify text-center">Загрузка..</h3>
                 <p class="lead text-right">
-                    <button type="button" class="btn btn-success btn-save-cfg">Сохранить</button>
+                    <button type="button" class="btn btn-primary btn-save-cfg">Сохранить</button>
+                </p>
+            </div>
+            <div class="add-domain">
+                <h2>Добавить домен</h2>
+                <div class="form-group row">
+                    <label>Тип
+                        <select class="form-control form-control-sm">
+                            <option>A</option>
+                            <option>AAAA</option>
+                            <option>CNAME</option>
+                            <option>MX</option>
+                        </select>
+                    </label>
+                    <label class="col col-form-label">Имя
+                        <input type="text" class="form-control" name="domain_name" placeholder="@ или значение">
+                    </label>
+                    <label class="col col-form-label">Адрес
+                        <input type="text" class="form-control" name="domain_ip" placeholder="IPv4">
+                    </label>
+                    <label class="col col-form-label">Прокси
+                        <input class="form-check-input" type="checkbox" name="domain_proxy" value="" id="defaultCheck1" checked>
+                    </label>
+                </div>
+                <p class="lead text-right">
+                    <button type="button" class="btn btn-success btn-add-domain">Отправить</button>
                 </p>
             </div>
         {% else %}
@@ -85,10 +109,10 @@
 {% if current_user.is_authenticated %}
     <script type="text/javascript">
         $(document).ready(function () {
-            $('.notify').hide();
             $('.btn-save-cfg').click(function (event) {
+                $('.notify').remove();
+                $('<h3 class="cover-heading notify text-center">Загрузка..</h3>').insertBefore(this);
                 var btn = $(this), notify = $('.notify');
-                notify.text('Загрузка...');
                 notify.fadeIn(50);
                 btn.fadeOut(50);
                 {#TODO написать универнсальный аякс #}
@@ -106,6 +130,32 @@
                         console.log(data);
                         notify.addClass('text-danger');
                         notify.text('Ошибка ' + data.status + ': ' + data.responseText['error_msg']);
+                    },
+                    complete: function (data) {
+                        btn.fadeIn(50);
+                    }
+                });
+            });
+            $('.btn-add-domain').click(function (event) {
+                $('.notify').remove();
+                $('<h3 class="cover-heading notify text-center">Загрузка..</h3>').insertBefore(this);
+                var btn = $(this), notify = $('.notify');
+                notify.fadeIn(50);
+                btn.fadeOut(50);
+                $.ajax({
+                    url: '/add-domain',
+                    type: "POST",
+                    data: JSON.stringify($('.settings-list input').serializeArray()),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        notify.addClass('text-success');
+                        notify.text('Сохранено');
+                    },
+                    error: function (data) {
+                        console.log(data);
+                        notify.addClass('text-danger');
+                        notify.text('Ошибка ' + data.status + ': ' + data.responseJSON['error_msg']);
                     },
                     complete: function (data) {
                         btn.fadeIn(50);
