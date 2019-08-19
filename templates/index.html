@@ -6,62 +6,78 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
           crossorigin="anonymous">
     <title>{{ app_title }}</title>
     <link href="{{ url_for('static', filename='css/style.css') }}?ver={{ ver }}" rel=stylesheet type=text/css media="screen,projection">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
     <header class="masthead mb-auto">
-        <div class="inner">
-            <h3 class="masthead-brand">{{ app_title }}</h3>
-            <nav class="nav nav-masthead justify-content-center">
-                <!--<a class="nav-link active" href="#">Home</a>-->
-            </nav>
-        </div>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-light-">
+            <a class="navbar-brand" href="/">{{ app_title }}</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/">Главная <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/settings">Настройки</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
     </header>
 
-    <main role="main" class="inner cover container">
+    <main role="main" class="inner cover container justify-content-center">
         {% if current_user and current_user.is_authenticated %}
-            <div class="settings-list">
-                <h2>Настройки:</h2>
-                {% for cfg in settings %}
-                    <div class="form-group row">
-                        <label class="col col-form-label">{{- cfg.desc -}}:
-                            <input type="text" class="form-control" name="{{ cfg.key }}" value="{{ cfg.value if cfg.value }}">
-                        </label>
+            <div class="container generator">
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group row">
+                            <label class="col col-form-label">Гео
+                                <input type="text" class="form-control" name="geo" placeholder="ro" value="">
+                            </label>
+                        </div>
                     </div>
-                {% endfor %}
-                <p class="lead text-right">
-                    <button type="button" class="btn btn-primary btn-save-cfg">Сохранить</button>
-                </p>
-            </div>
-            <div class="add-domain">
-                <h2>Добавить домен</h2>
-                <div class="form-group row">
-                    <label>Тип
-                        <select class="form-control form-control-sm" name="domain_type">
-                            <option>A</option>
-                            <option>AAAA</option>
-                            <option>CNAME</option>
-                            <option>MX</option>
-                        </select>
-                    </label>
-                    <label class="col col-form-label">Имя
-                        <input type="text" class="form-control" name="domain_name" placeholder="@, *, или значение">
-                    </label>
-                    <label class="col col-form-label">Адрес
-                        <input type="text" class="form-control" name="domain_ip" placeholder="IPv4">
-                    </label>
-                    <label class="col col-form-label">Прокси
-                        <input class="form-check-input" type="checkbox" name="domain_proxy" value="" id="defaultCheck1" checked>
-                    </label>
+                    <div class="col-5">
+                        <div class="form-group row">
+                            <label class="col col-form-label">Домен
+                                <select class="form-control form-control-sm" name="domain">
+                                    <option selected>domain.com</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group row">
+                            <label class="col col-form-label">Кол-во
+                                <input type="text" class="form-control" name="num" placeholder="10" value="">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-group">
+                            <p class="text-center">
+                                <button type="button" class="btn btn-secondary btn-generate">Сгенерировать</button>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-6 offset-3">
+                        <div class="form-group">
+                            <div class="notify text-center"></div>
+                            <label class="col col-form-label">Результат
+                                <textarea class="form-control" rows="3"></textarea>
+                                <button type="button" class="btn-sm btn-secondary btn-copy" aria-label="Копировать"><i class="material-icons">file_copy</i></button>
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <p class="lead text-right">
-                    <button type="button" class="btn btn-success btn-add-domain">Отправить</button>
-                </p>
             </div>
         {% else %}
             <h1 class="cover-heading">Необходима авторизация</h1>
@@ -108,60 +124,40 @@
         crossorigin="anonymous"></script>
 {% if current_user.is_authenticated %}
     <script type="text/javascript">
+        function notify(msg, type) {
+            var types = ['danger', 'success', 'info'];
+            $('.notify').append($('<span>').attr('class', 'badge badge-' + types[type]).hide().text(msg).fadeIn('fast', function () {
+                $(this).delay(3000).fadeOut('fast');
+            }));
+        }
+
         $(document).ready(function () {
-            $('.btn-save-cfg').click(function (event) {
-                $('.notify').remove();
-                $('<h3 class="cover-heading notify text-center">Сохраняю..</h3>').insertBefore(this);
-                var btn = $(this), notify = $('.notify');
-                notify.fadeIn(50);
-                btn.fadeOut(50);
-                {#TODO написать универнсальный аякс #}
+            $('.btn-generate').click(function (e) {
+                $(e.target).fadeOut(50);
                 $.ajax({
-                    url: '/update-cfg',
+                    url: '/genDomains',
                     type: "POST",
-                    data: JSON.stringify($('.settings-list input').serializeArray()),
+                    data: JSON.stringify({'name': 'value'}),
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
-                    success: function (data) {
-                        notify.addClass('text-success');
-                        notify.text('Сохранено');
+                    success: function () {
+                        notify('Готово', 1);
+                        $('textarea').val('')
                     },
                     error: function (data) {
                         console.log(data);
-                        notify.addClass('text-danger');
-                        notify.text('Ошибка ' + data.status + ': ' + data.responseText['error_msg']);
+                        notify('Ошибка ' + data.status + ': ' + ('responseJSON' in data ? data.responseJSON['error_msg'] : data.statusText), 0);
                     },
-                    complete: function (data) {
-                        btn.fadeIn(50);
+                    complete: function () {
+                        $(e.target).fadeIn(50);
                     }
                 });
             });
-            $('.btn-add-domain').click(function (event) {
-                $('.notify').remove();
-                $('<h3 class="cover-heading notify text-center">Обработка..</h3>').insertBefore(this);
-                var btn = $(this), notify = $('.notify');
-                notify.fadeIn(50);
-                btn.fadeOut(50);
-                $.ajax({
-                    url: '/add-domain',
-                    type: "POST",
-                    data: JSON.stringify({'domain_name': $(".add-domain input[name=domain_name]").val(), 'domain_ip': $(".add-domain input[name=domain_ip]").val()}),
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json",
-                    success: function (data) {
-                        notify.addClass('text-success');
-                        notify.text('Домен добавлен');
-                        $(".add-domain input").val('')
-                    },
-                    error: function (data) {
-                        console.log(data);
-                        notify.addClass('text-danger');
-                        notify.text('Ошибка ' + data.status + ': ' + data.responseJSON['error_msg']);
-                    },
-                    complete: function (data) {
-                        btn.fadeIn(50);
-                    }
-                });
+
+            $('.btn-copy').click(function () {
+                $('textarea').select();
+                document.execCommand("copy");
+                notify('Скопировано', 2);
             });
         });
     </script>

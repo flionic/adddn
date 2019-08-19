@@ -118,3 +118,25 @@ body {
 .mastfoot {
     color: rgba(255, 255, 255, .5);
 }
+
+.col-form-label .form-control {
+    margin-top: 5px;
+}
+
+.btn-copy {
+    float: right;
+    margin-top: -10%;
+    margin-right: 3%;
+}
+
+.ico-btn {
+
+}
+
+.ico-btn:hover {
+    cursor: pointer;
+}
+
+.notify {
+    min-height: 25px;
+}
