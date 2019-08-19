@@ -146,14 +146,6 @@ body {
     background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAoUlEQVQ4T+3SMQ4BYRDF8d8qqJyCY+iVCpVeIZE4ADeg4AS4gkZ0buEEeoVEiXyJYsPu5tvYcqedmX9m3nuJCiupkKWGlVez1qw6zUbY45mBbGCC3Xcvz4AWDuhnwM4Y4B4LC3M9HNFOLd0wRAD+VFE0Qm+DWWprizFeZWFhvoMTurh+3r7kWRMT2inWWGBV5HEMrIkl5nj8C4sOXMxl0bA3w/kTFF64QSgAAAAASUVORK5CYII=);
 }
 
-.treegrid-expander.treegrid-expander-expanded i.fa:before {
-    content: "\f068";
-}
-
-.treegrid-expander.treegrid-expander-collapsed i.fa:before {
-    content: "\f067";
-}
-
 .treegrid-expander {
     background-image: none;
     margin-right: 5px;

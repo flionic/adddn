@@ -131,6 +131,10 @@
                     if (columns && columns[0][1].visible) {
                         $table.treegrid({
                             treeColumn: 1,
+                            initialState: 'collapsed',
+                            {#expanderTemplate: '<i class="fas chevron-down"></i>',#}
+                            expanderExpandedClass: 'fa fa-minus',
+                            expanderCollapsedClass: 'fa fa-plus',
                             onChange: function () {
                                 $table.bootstrapTable('resetWidth')
                             }
