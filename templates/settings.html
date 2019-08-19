@@ -1,0 +1,30 @@
+{% extends 'layout/base.html' %}
+{% block main %}
+    <h2>Настройки</h2>
+    <div class="container settings">
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group">
+                    <span>Домены</span>
+                </div>
+            </div>
+            <div class="col-6 offset-3 text-center">
+                <div class="form-group">
+                    <label class="col col-form-label">
+                        <input class="form-control" type="text" name="new_domain" placeholder="domain.com">
+                    </label>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-success btn-add-domain">Добавить домен</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.nav-settings').addClass('active');
+        });
+    </script>
+{% endblock %}

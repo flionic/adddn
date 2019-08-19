@@ -73,9 +73,15 @@ class Settings(db.Model):
 
 
 @app.route('/')
-def index():
+def page_index():
     settings = Settings.query.offset(2).all() if current_user.is_authenticated else None
     return render_template('index.html', settings=settings)
+
+
+@app.route('/settings')
+def page_settings():
+    settings = Settings.query.offset(2).all() if current_user.is_authenticated else None
+    return render_template('settings.html', settings=settings)
 
 
 @app.route('/login', methods=['POST'])
