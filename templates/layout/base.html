@@ -9,10 +9,10 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
           crossorigin="anonymous">
     <title>{{ app_title }}</title>
-    <link href="{{ url_for('static', filename='css/style.css') }}?ver={{ ver }}" rel=stylesheet type=text/css media="screen,projection">
-    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.15.4/dist/bootstrap-table.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{#    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">#}
+    <script src="https://kit.fontawesome.com/f76cfd3b7d.js"></script>
     {% block head %}{% endblock -%}
+    <link href="{{ url_for('static', filename='css/style.css') }}?ver={{ ver }}" rel=stylesheet type=text/css media="screen,projection">
 </head>
 <body>
 <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
@@ -83,7 +83,6 @@
         crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
-<script src="https://unpkg.com/bootstrap-table@1.15.4/dist/bootstrap-table.min.js"></script>
 <script>
     function notify(msg, type) {
         var types = ['danger', 'success', 'info'];

@@ -125,8 +125,9 @@ body {
 
 .btn-copy {
     float: right;
-    margin-top: -10%;
-    margin-right: 3%;
+    margin-top: -12%;
+    margin-right: 4%;
+    font-size: 150%;
 }
 
 .ico-btn {
