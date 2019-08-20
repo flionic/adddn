@@ -16,8 +16,8 @@ app.jinja_env.trim_blocks = True
 app.jinja_env.lstrip_blocks = True
 app.url_map.strict_slashes = False
 app.wsgi_app = ProxyFix(app.wsgi_app)
-app.config['APP_NAME'] = 'adddn'
-app.config['APP_TITLE'] = 'Add domains'
+app.config['APP_NAME'] = 'domain_gen'
+app.config['APP_TITLE'] = 'Генератор конфигов'
 app.config['VERSION'] = '0.0.1'
 app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY', '7-DEV_MODE_KEY-7')
 

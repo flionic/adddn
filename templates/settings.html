@@ -19,11 +19,14 @@
                            data-show-refresh="true"
                            data-show-toggle="true"
                            data-show-fullscreen="true"
+                           data-show-export="true"
                             {#                           data-show-columns="true"#}
                             {#                           data-detail-view="true"#}
-                           data-show-export="true"
-                           data-click-to-select="true"
+                            {#                           data-click-to-select="true"#}
                            data-show-footer="true"
+                           data-pagination="true"
+                           data-show-pagination-switch="true"
+                           data-page-list="[10, 25, 50, 100, all]"
                     >
 
                     </table>
@@ -84,45 +87,33 @@
                 sidePagination: 'server',
                 idField: 'id',
                 showColumns: true,
-                columns: /*[{
-                    field: 'name',
-                    title: 'Домен',
-                    sortable: true,
-                    footerFormatter: totalNameFormatter,
-                    align: 'center'
-                }, {
-                    field: 'status',
-                    title: 'Поддомены',
-                    sortable: true,
-                    align: 'center',
-                    footerFormatter: totalPriceFormatter
-                }, {
-                    field: 'operate',
-                    title: 'Действия',
-                    align: 'center',
-                    events: window.operateEvents,
-                    formatter: operateFormatter
-                }],*/
-                    [{
+                columns: [
+                    {
                         field: 'ck',
                         checkbox: true
                     },
-                        {
-                            field: 'name',
-                            title: 'Домен'
-                        },
-                        {
-                            field: 'children',
-                            title: 'Поддомены',
-                            sortable: true,
-                            align: 'center',
-                            formatter: 'childrenFormatter'
-                        }/*,
-                        {
-                           field: 'permissionValue',
-                           title: '---'
-                        }*/
-                    ],
+                    {
+                        field: 'name',
+                        title: 'Домен',
+                        footerFormatter: 'totalDomains'
+                    },
+                    {
+                        field: 'children',
+                        title: 'Поддомены',
+                        align: 'center',
+                        sortable: true,
+                        {#formatter: 'childrenFormatter'#}
+                    },
+                    {
+                        field: 'ssl',
+                        title: 'SSL',
+                        sortable: true
+                    }/*,
+                    {
+                        field: 'permissionValue',
+                        title: '---'
+                    }*/
+                ],
                 treeShowField: 'name',
                 parentIdField: 'pid',
                 onPostBody: function () {
@@ -144,6 +135,14 @@
             })
         })
 
+        /**/
+        $table.on('load-success.bs.table', function (e, name, args) {
+            console.log(name, args)
+            $('.treegrid-expanded .treegrid-expander').append('<i class="fa" aria-hidden="true"></i>');
+        })
+
+        /**/
+
         function typeFormatter(value, row, index) {
             if (value === 'menu') {
                 return 'menu'
@@ -161,6 +160,7 @@
             if (value) {
                 return value
             }
+            return ''
         }
 
         function statusFormatter(value, row, index) {
@@ -169,7 +169,12 @@
             }
             return '<span class="label label-default">default</span>'
         }
+
+        function totalDomains(data) {
+            return 'Всего доменов: ' + data.length
+        }
     </script>
+
     <script>
         var $table2 = $('#table2')
         var $remove = $('#remove')

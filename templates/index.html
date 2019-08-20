@@ -1,6 +1,6 @@
 {% extends 'layout/base.html' %}
 {% block main %}
-    <h2>Генератор</h2>
+    <h2>Добавить</h2>
     <div class="container generator">
         <div class="row">
             <div class="col">
@@ -21,8 +21,8 @@
             </div>
             <div class="col">
                 <div class="form-group row">
-                    <label class="col col-form-label">Кол-во
-                        <input type="text" class="form-control" name="num" placeholder="10" value="">
+                    <label class="col col-form-label text-right">Кол-во
+                        <input type="text" class="form-control text-right" name="num" placeholder="10" value="">
                     </label>
                 </div>
             </div>
@@ -33,7 +33,7 @@
                     </p>
                 </div>
             </div>
-            <div class="col-6 offset-3">
+            <div class="col-md-6 offset-md-3">
                 <div class="form-group">
                     <div class="notify text-center"></div>
                     <label class="col col-form-label">Результат
