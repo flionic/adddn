@@ -14,7 +14,14 @@
                 <div class="form-group row">
                     <label class="col col-form-label">Домен
                         <select class="form-control form-control-sm" name="domain">
-                            <option selected>domain.com</option>
+                            {% if domains_p %}
+                                <option disabled selected>domain.com</option>
+                                {% for d in domains_p %}
+                                    <option disabled selected>{{ d }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option disabled selected>Нет доступных доменов</option>
+                            {% endif %}
                         </select>
                     </label>
                 </div>

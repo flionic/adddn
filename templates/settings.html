@@ -15,14 +15,24 @@
             </table>
         </div>
         <br>
-        <div class="notify text-center"></div>
-        <div class="col-5 offset-2 form-group">
-            <label class="col col-form-label">
-                <input class="form-control" type="text" name="new_domain" placeholder="Новый domain.com">
-            </label>
-        </div>
-        <div class="col-3 form-group">
-            <button class="btn btn-success btn-add-domain">Добавить</button>
+        <div class="col-12 text-center row">
+            <div class="col-5 offset-2 form-group">
+                <label class="col col-form-label">
+                    <input class="form-control" type="text" name="new_domain" placeholder="Новый domain.com">
+                </label>
+            </div>
+            <div class="col-3 form-group">
+                <button class="btn btn-success btn-add-domain">Добавить</button>
+            </div>
+            <div class="col-5 offset-2 form-group">
+                <p>Найти все активные nginx домены и их поддомены</p>
+            </div>
+            <div class="col-3 form-group">
+                <button class="btn btn-secondary btn-scan">Сканировать</button>
+            </div>
+            <div class="col-12">
+                <div class="notify text-center"></div>
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -39,6 +49,9 @@
             $('.btn-add-domain').click(function (e) {
                 make_rq('/addDomain', {'domain': $('input[name=new_domain]').val()}, e);
             });
+            $('.btn-scan').click(function (e) {
+                make_rq('/scan', {}, e);
+            })
         });
     </script>
     <script>

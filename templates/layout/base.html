@@ -86,6 +86,7 @@
 
     function make_rq(link, values, e) {
         $(e.target).fadeOut(50);
+        notify('Обработка..', 2);
         $.ajax({
             url: link,
             type: "POST",
