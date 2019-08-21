@@ -124,6 +124,7 @@ body {
 }
 
 .btn-copy {
+    position: sticky;
     float: right;
     margin-top: -12%;
     margin-right: 4%;
