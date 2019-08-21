@@ -153,7 +153,6 @@ def push_domain():
     # shutil.copy('/etc/nginx/sites-enabled/link.conf', '/var/www/adddn/')
     # TODO: SSL CERTBOT !!! # certbot --nginx -n certonly --cert-name adddn.ml -d adddn.ml,1.testadn.ml,2.testadn.ml
     # TODO: errors handler
-    import subprocess
     subprocess.call('service nginx reload', shell=True)
 
     import CloudFlare
@@ -166,6 +165,26 @@ def push_domain():
     cf.zones.dns_records.post(zone_id, data=dns_test)
 
     return jsonify({"response": 1})
+
+
+@app.route('/scan')
+@login_required
+def scan_nginx_cfgs():
+    # domains = subprocess.check_output(["sh", """"find /etc/nginx/sites-enabled/ -print0 | xargs -0 egrep '^(\s|\t)*server_name' | sed 's/.*server_name \(.*\);.*$/\1/g' | sort | uniq"""])
+    # domains_list = str(domains).replace('\\n', ';').split(';')
+    domains = subprocess.check_output(["sh", "nxcfgs_get.sh"]).decode()[:-1].split('\n')
+    dn = [i.count('.') < 2 and i for i in domains]
+    is_parent = [i.count('.') > 1 for i in domains]
+    for d in domains:
+        if Domains.query.filter_by(name=d).first() is None:
+            d_new = Domains(d)
+
+
+@app.route('/generateDomains')  # nxcfgen
+@login_required
+def domain_generator():
+    'certbot'
+    nginx = subprocess.check_output(["service", "nginx", "reload"])
 
 
 @app.route('/getDomains')
