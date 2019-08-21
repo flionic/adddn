@@ -39,8 +39,7 @@ def load_user(uid):
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
-    flash('Для этого действия требуется авторизация', 'error')
-    return redirect(url_for('index'))
+    return 'Для этого действия требуется авторизация', 403
 
 
 class Settings(db.Model):
@@ -178,6 +177,7 @@ def scan_nginx_cfgs():
     for d in domains:
         if Domains.query.filter_by(name=d).first() is None:
             d_new = Domains(d)
+    return jsonify({'response': 1})
 
 
 @app.route('/generateDomains')  # nxcfgen
