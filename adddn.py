@@ -81,9 +81,17 @@ class Domains(db.Model):
 
     def __init__(self, name):
         self.name = name
+        level = name.count('.')-1
+        parent = name.split('.', level)[-1]
+        d_parent = Domains.query.filter_by(name=parent).first()
+        self.pid = 0 if level == 1 else d_parent.id if d_parent else -1
 
     def __repr__(self):
         return "<Domain(id='%s', pid='%s', name='%s', ssl='%s', child='%s')>" % (self.id, self.pid, self.name, self.ssl, self.child)
+
+
+def d_sort(e):
+    return e.count('.')-1
 
 
 @app.route('/')
