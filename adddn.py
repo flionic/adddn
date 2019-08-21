@@ -1,5 +1,6 @@
 #!/usr/bin/env python3.7
 import shutil
+import subprocess
 
 import bcrypt
 import os
@@ -137,7 +138,7 @@ def update_settings():
     return jsonify({"response": 1})
 
 
-@app.route('/add-domain', methods=['POST'])
+@app.route('/add-domain', methods=['POST'])  # TODO: he want refactor
 @login_required
 def push_domain():
     print(request.json)
@@ -151,6 +152,7 @@ def push_domain():
     f.close()
     # shutil.copy('/etc/nginx/sites-enabled/link.conf', '/var/www/adddn/')
     # TODO: SSL CERTBOT !!! # certbot --nginx -n certonly --cert-name adddn.ml -d adddn.ml,1.testadn.ml,2.testadn.ml
+    # TODO: errors handler
     import subprocess
     subprocess.call('service nginx reload', shell=True)
 

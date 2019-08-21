@@ -105,7 +105,7 @@
                 function () {
                     $remove.prop('disabled', !$table.bootstrapTable('getSelections').length)
                     // save your data, here just save the current page
-                    selections = getIdSelections()
+                    selections = getIdSelections() // TODO: select all child
                     // push or splice the selections if you want to save all data selections
                 })
             $table.on('all.bs.table', function (e, name, args) {
