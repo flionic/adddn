@@ -142,8 +142,7 @@ def d_sort(e):
 
 @app.route('/')
 def page_index():
-    settings = Settings.query.offset(2).all() if current_user.is_authenticated else None
-    return render_template('index.html', settings=settings)
+    return render_template('index.html', p_domains=Domains.query.filter_by(pid=0).all())
 
 
 @app.route('/settings')
@@ -246,8 +245,8 @@ def domain_generator():
 @app.route('/getDomains', methods=['GET', 'POST'])
 @login_required
 def domains_list():
-    # return jsonify([{"id": 1, "pid": 0, "name": "domain.com", "children": 4, "ssl": 1}, {"id": 2, "pid": 0, "status": 1, "name": "site.ru", "children": 4, "ssl": 1}, {"id": 54, "pid": 0, "name": "bla.bla", "children": 1, "ssl": 0}, {"id": 10, "pid": 0, "name": "helloword.com", "children": 2, "ssl": 0}, {"id": 100, "pid": 0, "name": "store.com", "children": 5, "ssl": 1}, {"id": 20, "pid": 1, "status": 0, "name": "ru.domain.com", "children": 0, "ssl": 1}, {"id": 21, "pid": 1, "status": 0, "name": "ru1.domain.com", "children": 0, "ssl": 0}, {"id": 22, "pid": 1, "status": 0, "name": "ru2.domain.com", "children": 0, "ssl": 1}, {"id": 33, "pid": 2, "name": "en.site.ru", "children": 0, "ssl": 1}, {"id": 333, "pid": 2, "status": 1, "name": "en2.site.ru", "children": 0, "ssl": 1}, {"id": 3333, "pid": 2, "status": 1, "name": "en3.site.ru", "children": 0, "ssl": 1}, {"id": 233332, "pid": 2, "status": 0, "name": "en4.site.ru", "children": 0, "ssl": 0}, {"id": 12, "pid": 54, "name": "bl03.bla.bla", "children": 0, "ssl": 0}, {"id": 435, "pid": 10, "name": "da1.helloword.com", "children": 0, "ssl": 0}, {"id": 434, "pid": 10, "name": "da15.helloword.com", "children": 0, "ssl": 0}, {"id": 196, "pid": 100, "name": "az1.store.com", "children": 0, "ssl": 0}, {"id": 218, "pid": 100, "name": "az10.store.com", "children": 0, "ssl": 1}, {"id": 217, "pid": 100, "name": "az15.store.com", "children": 0, "ssl": 1}, {"id": 216, "pid": 100, "name": "az17.store.com", "children": 0, "ssl": 1}, {"id": 228, "pid": 100, "name": "az20.store.com", "children": 0, "ssl": 1}])
-    return jsonify(result=[d.serialize() for d in Domains.query.all()])
+    # TODO: мб кеш?
+    return jsonify([d.serialize() for d in Domains.query.all()])
 
 
 def init_app():
