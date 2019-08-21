@@ -3,6 +3,7 @@ import os
 import subprocess
 
 import bcrypt
+import flask_sqlalchemy
 from flask import Flask, render_template, flash, redirect, url_for, jsonify, request
 from flask_login import LoginManager, logout_user, login_user, current_user, login_required
 from flask_session import Session
@@ -222,11 +223,36 @@ def scan_nginx_cfgs():
     #     return jsonify({'error_msg': 'scan_nginx_cfgs() error'}), 502
 
 
-@app.route('/generateDomains', methods=['POST'])  # nxcfgen
+@app.route('/generateDomains', methods=['GET', 'POST'])  # nxcfgen
 @login_required
 def domain_generator():
-    'certbot'
+    print(request.args)
+    d = Domains.query.filter_by(pid=int(request.args.get('domain'))).order_by(Domains.id.asc())
+    start_index = 0
+    for i in d.all():
+        if request.args.get('geo') in i.name.split('.', 2)[0]:
+            index = (i.name.split('.', 2)[0]).replace(request.args.get('geo'), '')
+            index = 0 if index is '' else int(index)
+            start_index = index if index > start_index else start_index
+            d = i
+    # what is it?
+    if isinstance(d, flask_sqlalchemy.BaseQuery):
+        d = d.first()
+    else:
+        start_index += 1
+        # start_index = int(''.join(filter(str.isdigit, d.name.split('.')[0])))
+    d_parent = ".".join(d.name.rsplit('.', 2)[1:])
+
+    response = str()
+
+    for i in range(start_index, int(request.args.get('num')) + start_index):
+        response += f"https://{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}/\n"
+
+    # TODO: certbot
+
     nginx = subprocess.check_output(["service", "nginx", "reload"])
+    # print(nginx)
+    return response
 
 
 @app.route('/getDomains', methods=['GET', 'POST'])
