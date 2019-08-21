@@ -14,42 +14,26 @@
                             <i class="glyphicon glyphicon-remove"></i> Удалить
                         </button>
                     </div>
-                    <table id="table"
-                            {#                           data-toolbar="#toolbar"#}
-                           data-show-refresh="true"
-                           data-show-toggle="true"
-                           data-show-fullscreen="true"
-                           data-show-export="true"
-                            {#                           data-show-columns="true"#}
-                            {#                           data-detail-view="true"#}
-                            {#                           data-click-to-select="true"#}
-                           data-show-footer="true"
-                           data-pagination="true"
-                           data-show-pagination-switch="true"
-                           data-page-list="[10, 25, 50, 100, all]"
-                    >
-
-                    </table>
                     <table
-                            id="table2"
+                            id="table"
                             data-toolbar="#toolbar"
+                            data-id-field="id"
+                            data-response-handler="responseHandler"
+                            data-detail-formatter="detailFormatter"
                             data-show-refresh="true"
                             data-show-toggle="true"
                             data-show-fullscreen="true"
-                            data-show-columns="true"
-                            data-detail-view="true"
                             data-show-export="true"
-                            data-click-to-select="true"
-                            data-detail-formatter="detailFormatter"
-                            data-minimum-count-columns="2"
-                            data-show-pagination-switch="true"
-                            data-pagination="true"
-                            data-id-field="id"
-                            data-page-list="[10, 25, 50, 100, all]"
                             data-show-footer="true"
-                            data-side-pagination="server"
-                            data-url="https://examples.wenzhixin.net.cn/examples/bootstrap_table/data"
-                            data-response-handler="responseHandler">
+                            {#data-show-columns="true"#}
+                            {#data-detail-view="true"#}
+                            {#data-click-to-select="true"#}
+                            {#data-minimum-count-columns="200"#}
+                            {#data-side-pagination="server"#}
+                            {#data-pagination="true"#}
+                            {#data-show-pagination-switch="true"#}
+                            {#data-page-list="[10, 25, 50, 100, all]"#}
+                            {#data-url="https://examples.wenzhixin.net.cn/examples/bootstrap_table/data"#}>
                     </table>
                 </div>
             </div>
@@ -70,50 +54,55 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-treegrid/0.2.0/js/jquery.treegrid.min.js"></script>
     <script src="https://unpkg.com/bootstrap-table@1.15.4/dist/bootstrap-table.min.js"></script>
     <script src="https://unpkg.com/bootstrap-table@1.15.4/dist/extensions/treegrid/bootstrap-table-treegrid.min.js"></script>
-
-
     <script src="https://unpkg.com/tableexport.jquery.plugin/tableExport.min.js"></script>
-    {#        <script src="https://unpkg.com/bootstrap-table@1.15.4/dist/bootstrap-table.min.js"></script>#}
+    {#<script src="https://unpkg.com/bootstrap-table@1.15.4/dist/bootstrap-table.min.js"></script>#}
     <script src="https://unpkg.com/bootstrap-table@1.15.4/dist/bootstrap-table-locale-all.min.js"></script>
     <script src="https://unpkg.com/bootstrap-table@1.15.4/dist/extensions/export/bootstrap-table-export.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.nav-settings').addClass('active');
+        });
+    </script>
     <script>
         var $table = $('#table')
+        var $remove = $('#remove')
+        var selections = []
 
-        $(function () {
-            $table.bootstrapTable({
+        function initTable() {
+            $table.bootstrapTable('destroy').bootstrapTable({
                 url: 'static/treegrid.json',
                 locale: 'ru-RU',
                 striped: true,
-                sidePagination: 'server',
+                {#sidePagination: 'server',#}
                 idField: 'id',
                 showColumns: true,
-                columns: [
-                    {
-                        field: 'ck',
-                        checkbox: true
-                    },
-                    {
-                        field: 'name',
-                        title: 'Домен',
-                        footerFormatter: 'totalDomains'
-                    },
-                    {
-                        field: 'children',
-                        title: 'Поддомены',
-                        align: 'center',
-                        sortable: true,
-                        {#formatter: 'childrenFormatter'#}
-                    },
-                    {
-                        field: 'ssl',
-                        title: 'SSL',
-                        sortable: true
-                    }/*,
-                    {
-                        field: 'permissionValue',
-                        title: '---'
-                    }*/
-                ],
+                columns: [{
+                    field: 'state',
+                    checkbox: true
+                }, {
+                    field: 'name',
+                    title: 'Домен',
+                    sortable: true,
+                    footerFormatter: totalDomains
+                }, {
+                    field: 'children',
+                    title: 'Поддомены',
+                    align: 'center',
+                    sortable: true,
+                    formatter: childrenFormatter
+                }, {
+                    field: 'ssl',
+                    title: 'SSL',
+                    sortable: true,
+                    align: 'center'
+                }, {
+                    field: 'id',
+                    title: 'ID',
+                    sortable: true,
+                    align: 'center',
+                    {#events: window.operateEvents,#}
+                    {#formatter: operateFormatter#}
+                }],
                 treeShowField: 'name',
                 parentIdField: 'pid',
                 onPostBody: function () {
@@ -133,27 +122,39 @@
                     }
                 }
             })
-        })
+            $table.on('load-success.bs.table', function (e, name, args) {
+                console.log(name, args)
+                $('.treegrid-expanded .treegrid-expander').append('<i class="fa" aria-hidden="true"></i>');
+            })
+            $table.on('check.bs.table uncheck.bs.table ' +
+                'check-all.bs.table uncheck-all.bs.table',
+                function () {
+                    $remove.prop('disabled', !$table.bootstrapTable('getSelections').length)
+                    // save your data, here just save the current page
+                    selections = getIdSelections()
+                    // push or splice the selections if you want to save all data selections
+                })
+            $table.on('all.bs.table', function (e, name, args) {
+                console.log(name, args)
+            })
+            $remove.click(function () {
+                var ids = getIdSelections()
+                $table.bootstrapTable('remove', {
+                    field: 'id',
+                    values: ids
+                })
+                $remove.prop('disabled', true)
+            })
+        }
 
-        /**/
-        $table.on('load-success.bs.table', function (e, name, args) {
-            console.log(name, args)
-            $('.treegrid-expanded .treegrid-expander').append('<i class="fa" aria-hidden="true"></i>');
-        })
+        function getIdSelections() {
+            return $.map($table.bootstrapTable('getSelections'), function (row) {
+                return row.id
+            })
+        }
 
-        /**/
-
-        function typeFormatter(value, row, index) {
-            if (value === 'menu') {
-                return 'menu'
-            }
-            if (value === 'button') {
-                return 'button'
-            }
-            if (value === 'api') {
-                return 'api'
-            }
-            return '-'
+        function totalDomains(data) {
+            return 'Адресов всего: ' + data.length
         }
 
         function childrenFormatter(value, row, index) {
@@ -161,29 +162,6 @@
                 return value
             }
             return ''
-        }
-
-        function statusFormatter(value, row, index) {
-            if (value === 1) {
-                return '<span class="label label-success">success</span>'
-            }
-            return '<span class="label label-default">default</span>'
-        }
-
-        function totalDomains(data) {
-            return 'Всего доменов: ' + data.length
-        }
-    </script>
-
-    <script>
-        var $table2 = $('#table2')
-        var $remove = $('#remove')
-        var selections = []
-
-        function getIdSelections() {
-            return $.map($table2.bootstrapTable('getSelections'), function (row) {
-                return row.id
-            })
         }
 
         function responseHandler(res) {
@@ -201,6 +179,10 @@
             return html.join('')
         }
 
+        $(function () {
+            initTable()
+        })
+
         function operateFormatter(value, row, index) {
             return [
                 '<a class="remove" href="javascript:void(0)" title="Remove">',
@@ -211,18 +193,34 @@
 
         window.operateEvents = {
             'click .like': function (e, value, row, index) {
-                alert('You click like action, row: ' + JSON.stringify(row))
+                alert('Вы нажали лайк на строке ' + JSON.stringify(row))
             },
             'click .remove': function (e, value, row, index) {
-                $table2.bootstrapTable('remove', {
+                $table.bootstrapTable('remove', {
                     field: 'id',
                     values: [row.id]
                 })
             }
         }
 
-        function totalTextFormatter(data) {
-            return 'Total'
+        function typeFormatter(value, row, index) {
+            if (value === 'menu') {
+                return 'menu'
+            }
+            if (value === 'button') {
+                return 'button'
+            }
+            if (value === 'api') {
+                return 'api'
+            }
+            return '-'
+        }
+
+        function statusFormatter(value, row, index) {
+            if (value === 1) {
+                return '<span class="label label-success">success</span>'
+            }
+            return '<span class="label label-default">default</span>'
         }
 
         function totalNameFormatter(data) {
@@ -237,83 +235,5 @@
                 return sum + i
             }, 0)
         }
-
-        function initTable() {
-            $table2.bootstrapTable('destroy').bootstrapTable({
-                {#height: 550,#}
-                locale: 'ru-RU',
-                columns: [
-                    [{
-                        field: 'state',
-                        checkbox: true,
-                        rowspan: 2,
-                        align: 'center',
-                        valign: 'middle'
-                    }, {
-                        title: 'Item ID',
-                        field: 'id',
-                        rowspan: 2,
-                        align: 'center',
-                        valign: 'middle',
-                        sortable: true,
-                        footerFormatter: totalTextFormatter
-                    }, {
-                        title: 'Item Detail',
-                        colspan: 3,
-                        align: 'center'
-                    }],
-                    [{
-                        field: 'name',
-                        title: 'Домен',
-                        sortable: true,
-                        footerFormatter: totalNameFormatter,
-                        align: 'center'
-                    }, {
-                        field: 'price',
-                        title: 'Поддомены',
-                        sortable: true,
-                        align: 'center',
-                        footerFormatter: totalPriceFormatter
-                    }, {
-                        field: 'operate',
-                        title: 'Действия',
-                        align: 'center',
-                        events: window.operateEvents,
-                        formatter: operateFormatter
-                    }]
-                ]
-            })
-            $table2.on('check.bs.table uncheck.bs.table ' +
-                'check-all.bs.table uncheck-all.bs.table',
-                function () {
-                    $remove.prop('disabled', !$table2.bootstrapTable('getSelections').length)
-
-                    // save your data, here just save the current page
-                    selections = getIdSelections()
-                    // push or splice the selections if you want to save all data selections
-                })
-            $table2.on('all.bs.table', function (e, name, args) {
-                console.log(name, args)
-                $('table .detail-icon').addClass('text-dark')
-                $('table .fa-trash').addClass('text-danger')
-            })
-            $remove.click(function () {
-                var ids = getIdSelections()
-                $table2.bootstrapTable('remove', {
-                    field: 'id',
-                    values: ids
-                })
-                $remove.prop('disabled', true)
-            })
-        }
-
-        $(function () {
-            initTable()
-        })
-    </script>
-    <script type="text/javascript">
-        $(document).ready(function () {
-            $('.nav-settings').addClass('active');
-        });
     </script>
 {% endblock %}
