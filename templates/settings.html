@@ -5,29 +5,27 @@
 {% endblock %}
 {% block main %}
     <h2>Настройки</h2>
-    <div class="container settings jumbotron text-dark">
-        <div class="row">
-            <div class="col-6 offset-2 form-group">
-                <label class="col col-form-label">
-                    <input class="form-control" type="text" name="new_domain" placeholder="domain.com">
-                </label>
+    <div class="settings jumbotron text-dark row">
+        <div class="col-12">
+            <div id="toolbar">
+                <button id="remove" class="btn btn-danger" disabled>
+                    <i class="glyphicon glyphicon-remove"></i> Удалить
+                </button>
             </div>
-            <div class="col-4 form-group">
-                <button class="btn btn-success btn-add-domain">Добавить домен</button>
-            </div>
-            <div class="col-12">
-                <div class="form-group">
-                    <div id="toolbar">
-                        <button id="remove" class="btn btn-danger" disabled>
-                            <i class="glyphicon glyphicon-remove"></i> Удалить
-                        </button>
-                    </div>
-                    <table id="table" data-toolbar="#toolbar" data-id-field="id" data-response-handler="responseHandler"
-                           data-detail-formatter="detailFormatter" data-show-refresh="true" data-show-toggle="true"
-                           data-show-fullscreen="true" data-show-export="true" data-show-footer="true">
-                    </table>
-                </div>
-            </div>
+            <table id="table" data-toolbar="#toolbar" data-id-field="id" data-response-handler="responseHandler"
+                   data-detail-formatter="detailFormatter" data-show-refresh="true" data-show-toggle="true"
+                   data-show-fullscreen="true" data-show-export="true" data-show-footer="true">
+            </table>
+        </div>
+        <br>
+        <div class="notify text-center"></div>
+        <div class="col-5 offset-2 form-group">
+            <label class="col col-form-label">
+                <input class="form-control" type="text" name="new_domain" placeholder="Новый domain.com">
+            </label>
+        </div>
+        <div class="col-3 form-group">
+            <button class="btn btn-success btn-add-domain">Добавить</button>
         </div>
     </div>
 {% endblock %}
