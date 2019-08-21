@@ -1,55 +1,57 @@
 {% extends 'layout/base.html' %}
 {% block main %}
     <h2>Добавить</h2>
-    <div class="container generator">
-        <div class="row">
-            <div class="col">
-                <div class="form-group row">
-                    <label class="col col-form-label">Гео
-                        <input type="text" class="form-control" name="geo" placeholder="ro" value="">
-                    </label>
+    <div class="container">
+        <form class="domain-generator">
+            <div class="row">
+                <div class="col">
+                    <div class="form-group row">
+                        <label class="col col-form-label">Гео
+                            <input type="text" class="form-control" name="geo" placeholder="ro" value="">
+                        </label>
+                    </div>
+                </div>
+                <div class="col-5">
+                    <div class="form-group row">
+                        <label class="col col-form-label">Домен
+                            <select class="form-control form-control-sm" name="domain">
+                                {% if p_domains %}
+                                    <option disabled selected>Выберите...</option>
+                                    {% for d in p_domains %}
+                                        <option value="{{ d.id }}">{{ d.name }} ({{ d.child + 1 }} шт.)</option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option disabled selected>Нет доступных доменов</option>
+                                {% endif %}
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row">
+                        <label class="col col-form-label text-right">Кол-во
+                            <input type="text" class="form-control text-right" name="num" placeholder="10" value="">
+                        </label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="form-group">
+                        <p class="text-center">
+                            <button type="button" class="btn btn-secondary btn-generate">Сгенерировать</button>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-6 offset-md-3">
+                    <div class="form-group">
+                        <div class="notify text-center"></div>
+                        <label class="col col-form-label">Результат
+                            <textarea class="form-control data-response" rows="5"></textarea>
+                            <button type="button" class="btn-sm btn-secondary btn-copy" aria-label="Копировать"><i class="far fa-copy"></i></button>
+                        </label>
+                    </div>
                 </div>
             </div>
-            <div class="col-5">
-                <div class="form-group row">
-                    <label class="col col-form-label">Домен
-                        <select class="form-control form-control-sm" name="domain">
-                            {% if p_domains %}
-                                <option disabled selected>Выберите...</option>
-                                {% for d in p_domains %}
-                                    <option>{{ d.name }}( {{ d.child }} шт. )</option>
-                                {% endfor %}
-                            {% else %}
-                                <option disabled selected>Нет доступных доменов</option>
-                            {% endif %}
-                        </select>
-                    </label>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-group row">
-                    <label class="col col-form-label text-right">Кол-во
-                        <input type="text" class="form-control text-right" name="num" placeholder="10" value="">
-                    </label>
-                </div>
-            </div>
-            <div class="col-12">
-                <div class="form-group">
-                    <p class="text-center">
-                        <button type="button" class="btn btn-secondary btn-generate">Сгенерировать</button>
-                    </p>
-                </div>
-            </div>
-            <div class="col-md-6 offset-md-3">
-                <div class="form-group">
-                    <div class="notify text-center"></div>
-                    <label class="col col-form-label">Результат
-                        <textarea class="form-control" rows="3"></textarea>
-                        <button type="button" class="btn-sm btn-secondary btn-copy" aria-label="Копировать"><i class="far fa-copy"></i></button>
-                    </label>
-                </div>
-            </div>
-        </div>
+        </form>
     </div>
 {% endblock %}
 {% block scripts %}
@@ -57,7 +59,25 @@
         $(document).ready(function () {
             $('.nav-home').addClass('active');
             $('.btn-generate').click(function (e) {
-                make_rq('/generateDomains', {'name': 'value'}, e);
+                {#make_rq('/generateDomains', {'name': 'value'}, e);#}
+
+                $(e.target).fadeOut(50);
+                notify('Обработка..', 2);
+                $.ajax({
+                    url: '/generateDomains',
+                    data: $('.domain-generator').serialize(),
+                    success: function (data) {
+                        notify('Готово', 1);
+                        $('textarea').val(data);
+                    },
+                    error: function (data) {
+                        notify('Ошибка ' + data.status + ': ' + ('responseJSON' in data ? data.responseJSON['error_msg'] : data.statusText), 0);
+                    },
+                    complete: function (data) {
+                        {#console.log(data);#}
+                        $(e.target).fadeIn(50);
+                    }
+                });
             });
             $('.btn-copy').click(function () {
                 $('textarea').select();
