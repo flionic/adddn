@@ -202,11 +202,6 @@ def push_domain():
 @app.route('/scan', methods=['POST'])
 @login_required
 def scan_nginx_cfgs():
-    # domains = subprocess.check_output(["sh", """"find /etc/nginx/sites-enabled/ -print0 | xargs -0 egrep '^(\s|\t)*server_name' | sed 's/.*server_name \(.*\);.*$/\1/g' | sort | uniq"""])
-    # domains_list = str(domains).replace('\\n', ';').split(';')
-    # dn = [i.count('.') < 2 and i for i in domains]
-    # is_parent = [i.count('.') > 1 for i in domains]
-
     domains = subprocess.check_output(["sh", "/var/www/adddn/nxcfgs_get.sh"]).decode()[:-1].split('\n')
     domains.sort(key=d_sort)
     for d in domains:
@@ -215,12 +210,6 @@ def scan_nginx_cfgs():
             db.session.add(d_new)
             db.session.commit()
     return jsonify({'response': 1})
-
-    # try:
-    #
-    # except Exception as e:
-    #     print(e)
-    #     return jsonify({'error_msg': 'scan_nginx_cfgs() error'}), 502
 
 
 @app.route('/generateDomains', methods=['GET', 'POST'])  # nxcfgen
