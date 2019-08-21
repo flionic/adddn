@@ -42,13 +42,7 @@ def unauthorized_handler():
     return 'Для этого действия требуется авторизация', 403
 
 
-@app.template_filter('domains_p')
-def parent_domains():
-    return Domains.query.filter_by(pid=0).all()
-
-
 class Serializer(object):
-
     def serialize(self, include={}, exclude=[], only=[]):
         serialized = {}
         for key in inspect(self).attrs.keys():
@@ -70,7 +64,6 @@ class Serializer(object):
 
 
 class SerializableBaseQuery(BaseQuery):
-
     def serialize(self, include={}, exclude=[], only=[]):
         return [m.serialize(include, exclude, only) for m in self]
 
@@ -122,12 +115,6 @@ class Domains(db.Model, Serializer):
 
     def __repr__(self):
         return '<Domains(id=%s, pid=%s, name=%s, ssl=%s, child=%s)>' % (self.id, self.pid, self.name, self.ssl, self.child)
-        # return jsonify({"id": self.id, "pid": self.pid, "name": self.name, "ssl": self.ssl, "child": self.child})
-        # return {"id": self.id, "pid": self.pid, "name": self.name, "ssl": self.ssl, "child": self.child}
-
-    # def serialize(self):
-    #     print(self.id)
-    #     return list({"id": self.id, "pid": self.pid, "name": self.name, "ssl": self.ssl, "child": self.child})
 
     @property
     def computed_field(self):
@@ -148,8 +135,7 @@ def page_index():
 
 @app.route('/settings')
 def page_settings():
-    settings = Settings.query.offset(2).all() if current_user.is_authenticated else None
-    return render_template('settings.html', settings=settings)
+    return render_template('settings.html')
 
 
 @app.route('/login', methods=['POST'])
