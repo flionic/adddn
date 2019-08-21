@@ -90,6 +90,28 @@
             $(this).delay(3000).fadeOut('fast');
         }));
     }
+
+    function make_rq(link, values, e) {
+        $(e.target).fadeOut(50);
+        $.ajax({
+            url: link,
+            type: "POST",
+            data: JSON.stringify(values),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function () {
+                notify('Готово', 1);
+                $('textarea').val('')
+            },
+            error: function (data) {
+                console.log(data);
+                notify('Ошибка ' + data.status + ': ' + ('responseJSON' in data ? data.responseJSON['error_msg'] : data.statusText), 0);
+            },
+            complete: function () {
+                $(e.target).fadeIn(50);
+            }
+        });
+    }
 </script>
 {% if current_user.is_authenticated %}
     {%- block scripts -%}

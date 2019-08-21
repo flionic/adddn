@@ -50,25 +50,7 @@
         $(document).ready(function () {
             $('.nav-home').addClass('active');
             $('.btn-generate').click(function (e) {
-                $(e.target).fadeOut(50);
-                $.ajax({
-                    url: '/genDomains',
-                    type: "POST",
-                    data: JSON.stringify({'name': 'value'}),
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json",
-                    success: function () {
-                        notify('Готово', 1);
-                        $('textarea').val('')
-                    },
-                    error: function (data) {
-                        console.log(data);
-                        notify('Ошибка ' + data.status + ': ' + ('responseJSON' in data ? data.responseJSON['error_msg'] : data.statusText), 0);
-                    },
-                    complete: function () {
-                        $(e.target).fadeIn(50);
-                    }
-                });
+                make_rq('/genDomains', {'name': 'value'}, e);
             });
             $('.btn-copy').click(function () {
                 $('textarea').select();
