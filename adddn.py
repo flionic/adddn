@@ -1,14 +1,14 @@
 #!/usr/bin/env python3.7
-import shutil
+import os
 import subprocess
 
 import bcrypt
-import os
-
 from flask import Flask, render_template, flash, redirect, url_for, jsonify, request
 from flask_login import LoginManager, logout_user, login_user, current_user, login_required
 from flask_session import Session
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy, BaseQuery
+from sqlalchemy import inspect
+from sqlalchemy.ext.serializer import Serializer
 from werkzeug.contrib.fixers import ProxyFix
 
 app = Flask(__name__, instance_relative_config=True)
@@ -42,6 +42,39 @@ def unauthorized_handler():
     return 'Для этого действия требуется авторизация', 403
 
 
+@app.template_filter('domains_p')
+def parent_domains():
+    return Domains.query.filter_by(pid=0).all()
+
+
+class Serializer(object):
+
+    def serialize(self, include={}, exclude=[], only=[]):
+        serialized = {}
+        for key in inspect(self).attrs.keys():
+            to_be_serialized = True
+            value = getattr(self, key)
+            if key in exclude or (only and key not in only):
+                to_be_serialized = False
+            elif isinstance(value, BaseQuery):
+                to_be_serialized = False
+                if key in include:
+                    to_be_serialized = True
+                    nested_params = include.get(key, {})
+                    value = [i.serialize(**nested_params) for i in value]
+
+            if to_be_serialized:
+                serialized[key] = value
+
+        return serialized
+
+
+class SerializableBaseQuery(BaseQuery):
+
+    def serialize(self, include={}, exclude=[], only=[]):
+        return [m.serialize(include, exclude, only) for m in self]
+
+
 class Settings(db.Model):
     key = db.Column(db.String(24), primary_key=True, unique=True, nullable=False)
     value = db.Column(db.Text)
@@ -72,7 +105,7 @@ class Settings(db.Model):
         return "'%s': '%s'" % (self.key, self.value)
 
 
-class Domains(db.Model):
+class Domains(db.Model, Serializer):
     id = db.Column(db.Integer, primary_key=True)
     pid = db.Column(db.Integer)
     name = db.Column(db.String(255), nullable=False)
@@ -81,17 +114,30 @@ class Domains(db.Model):
 
     def __init__(self, name):
         self.name = name
-        level = name.count('.')-1
-        parent = name.split('.', level)[-1]
+        level = name.count('.')
+        parent = ".".join(name.rsplit('.', 2)[1:])
         d_parent = Domains.query.filter_by(name=parent).first()
         self.pid = 0 if level == 1 else d_parent.id if d_parent else -1
 
     def __repr__(self):
-        return "<Domain(id='%s', pid='%s', name='%s', ssl='%s', child='%s')>" % (self.id, self.pid, self.name, self.ssl, self.child)
+        return '<Domains(id=%s, pid=%s, name=%s, ssl=%s, child=%s)>' % (self.id, self.pid, self.name, self.ssl, self.child)
+        # return jsonify({"id": self.id, "pid": self.pid, "name": self.name, "ssl": self.ssl, "child": self.child})
+        # return {"id": self.id, "pid": self.pid, "name": self.name, "ssl": self.ssl, "child": self.child}
+
+    # def serialize(self):
+    #     print(self.id)
+    #     return list({"id": self.id, "pid": self.pid, "name": self.name, "ssl": self.ssl, "child": self.child})
+
+    @property
+    def computed_field(self):
+        return 'this value did not come from the db'
+
+    def keys(self):
+        return super().keys() + ['computed_field']
 
 
 def d_sort(e):
-    return e.count('.')-1
+    return e.count('.')
 
 
 @app.route('/')
@@ -166,31 +212,42 @@ def push_domain():
     return jsonify({"response": 1})
 
 
-@app.route('/scan')
+@app.route('/scan', methods=['POST'])
 @login_required
 def scan_nginx_cfgs():
     # domains = subprocess.check_output(["sh", """"find /etc/nginx/sites-enabled/ -print0 | xargs -0 egrep '^(\s|\t)*server_name' | sed 's/.*server_name \(.*\);.*$/\1/g' | sort | uniq"""])
     # domains_list = str(domains).replace('\\n', ';').split(';')
-    domains = subprocess.check_output(["sh", "nxcfgs_get.sh"]).decode()[:-1].split('\n')
-    dn = [i.count('.') < 2 and i for i in domains]
-    is_parent = [i.count('.') > 1 for i in domains]
+    # dn = [i.count('.') < 2 and i for i in domains]
+    # is_parent = [i.count('.') > 1 for i in domains]
+
+    domains = subprocess.check_output(["sh", "/var/www/adddn/nxcfgs_get.sh"]).decode()[:-1].split('\n')
+    domains.sort(key=d_sort)
     for d in domains:
         if Domains.query.filter_by(name=d).first() is None:
-            d_new = Domains(d)
+            d_new = Domains(d)  # TODO находить сертификат LE
+            db.session.add(d_new)
+            db.session.commit()
     return jsonify({'response': 1})
 
+    # try:
+    #
+    # except Exception as e:
+    #     print(e)
+    #     return jsonify({'error_msg': 'scan_nginx_cfgs() error'}), 502
 
-@app.route('/generateDomains')  # nxcfgen
+
+@app.route('/generateDomains', methods=['POST'])  # nxcfgen
 @login_required
 def domain_generator():
     'certbot'
     nginx = subprocess.check_output(["service", "nginx", "reload"])
 
 
-@app.route('/getDomains')
+@app.route('/getDomains', methods=['GET', 'POST'])
 @login_required
 def domains_list():
-    return jsonify([{"id": 1, "pid": 0, "name": "domain.com", "children": 4, "ssl": 1}, {"id": 2, "pid": 0, "status": 1, "name": "site.ru", "children": 4, "ssl": 1}, {"id": 54, "pid": 0, "name": "bla.bla", "children": 1, "ssl": 0}, {"id": 10, "pid": 0, "name": "helloword.com", "children": 2, "ssl": 0}, {"id": 100, "pid": 0, "name": "store.com", "children": 5, "ssl": 1}, {"id": 20, "pid": 1, "status": 0, "name": "ru.domain.com", "children": 0, "ssl": 1}, {"id": 21, "pid": 1, "status": 0, "name": "ru1.domain.com", "children": 0, "ssl": 0}, {"id": 22, "pid": 1, "status": 0, "name": "ru2.domain.com", "children": 0, "ssl": 1}, {"id": 33, "pid": 2, "name": "en.site.ru", "children": 0, "ssl": 1}, {"id": 333, "pid": 2, "status": 1, "name": "en2.site.ru", "children": 0, "ssl": 1}, {"id": 3333, "pid": 2, "status": 1, "name": "en3.site.ru", "children": 0, "ssl": 1}, {"id": 233332, "pid": 2, "status": 0, "name": "en4.site.ru", "children": 0, "ssl": 0}, {"id": 12, "pid": 54, "name": "bl03.bla.bla", "children": 0, "ssl": 0}, {"id": 435, "pid": 10, "name": "da1.helloword.com", "children": 0, "ssl": 0}, {"id": 434, "pid": 10, "name": "da15.helloword.com", "children": 0, "ssl": 0}, {"id": 196, "pid": 100, "name": "az1.store.com", "children": 0, "ssl": 0}, {"id": 218, "pid": 100, "name": "az10.store.com", "children": 0, "ssl": 1}, {"id": 217, "pid": 100, "name": "az15.store.com", "children": 0, "ssl": 1}, {"id": 216, "pid": 100, "name": "az17.store.com", "children": 0, "ssl": 1}, {"id": 228, "pid": 100, "name": "az20.store.com", "children": 0, "ssl": 1}])
+    # return jsonify([{"id": 1, "pid": 0, "name": "domain.com", "children": 4, "ssl": 1}, {"id": 2, "pid": 0, "status": 1, "name": "site.ru", "children": 4, "ssl": 1}, {"id": 54, "pid": 0, "name": "bla.bla", "children": 1, "ssl": 0}, {"id": 10, "pid": 0, "name": "helloword.com", "children": 2, "ssl": 0}, {"id": 100, "pid": 0, "name": "store.com", "children": 5, "ssl": 1}, {"id": 20, "pid": 1, "status": 0, "name": "ru.domain.com", "children": 0, "ssl": 1}, {"id": 21, "pid": 1, "status": 0, "name": "ru1.domain.com", "children": 0, "ssl": 0}, {"id": 22, "pid": 1, "status": 0, "name": "ru2.domain.com", "children": 0, "ssl": 1}, {"id": 33, "pid": 2, "name": "en.site.ru", "children": 0, "ssl": 1}, {"id": 333, "pid": 2, "status": 1, "name": "en2.site.ru", "children": 0, "ssl": 1}, {"id": 3333, "pid": 2, "status": 1, "name": "en3.site.ru", "children": 0, "ssl": 1}, {"id": 233332, "pid": 2, "status": 0, "name": "en4.site.ru", "children": 0, "ssl": 0}, {"id": 12, "pid": 54, "name": "bl03.bla.bla", "children": 0, "ssl": 0}, {"id": 435, "pid": 10, "name": "da1.helloword.com", "children": 0, "ssl": 0}, {"id": 434, "pid": 10, "name": "da15.helloword.com", "children": 0, "ssl": 0}, {"id": 196, "pid": 100, "name": "az1.store.com", "children": 0, "ssl": 0}, {"id": 218, "pid": 100, "name": "az10.store.com", "children": 0, "ssl": 1}, {"id": 217, "pid": 100, "name": "az15.store.com", "children": 0, "ssl": 1}, {"id": 216, "pid": 100, "name": "az17.store.com", "children": 0, "ssl": 1}, {"id": 228, "pid": 100, "name": "az20.store.com", "children": 0, "ssl": 1}])
+    return jsonify(result=[d.serialize() for d in Domains.query.all()])
 
 
 def init_app():
@@ -199,4 +256,3 @@ def init_app():
 
 
 init_app()
-
