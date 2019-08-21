@@ -243,16 +243,16 @@ def domain_generator():
         # start_index = int(''.join(filter(str.isdigit, d.name.split('.')[0])))
     d_parent = ".".join(d.name.rsplit('.', 2)[1:])
 
-    response = str()
+    response = list()
 
     for i in range(start_index, int(request.args.get('num')) + start_index):
-        response += f"https://{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}/\n"
+        response.append(f"https://{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}/")
 
     # TODO: certbot
 
     nginx = subprocess.check_output(["service", "nginx", "reload"])
     # print(nginx)
-    return response
+    return '\n'.join(response)
 
 
 @app.route('/getDomains', methods=['GET', 'POST'])
