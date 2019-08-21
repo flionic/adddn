@@ -118,6 +118,7 @@ class Domains(db.Model, Serializer):
         parent = ".".join(name.rsplit('.', 2)[1:])
         d_parent = Domains.query.filter_by(name=parent).first()
         self.pid = 0 if level == 1 else d_parent.id if d_parent else -1
+        self.child = len(Domains.query.filter_by(pid=self.id).all())
 
     def __repr__(self):
         return '<Domains(id=%s, pid=%s, name=%s, ssl=%s, child=%s)>' % (self.id, self.pid, self.name, self.ssl, self.child)
@@ -250,6 +251,10 @@ def domains_list():
 
 
 def init_app():
+    domains = Domains.query.all()
+    for d in domains:
+        d.child = len(Domains.query.filter_by(pid=d.id).all())
+    db.session.commit()
     db.create_all()
     # os.path.exists('main.db')
 
