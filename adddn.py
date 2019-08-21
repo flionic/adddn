@@ -72,6 +72,20 @@ class Settings(db.Model):
         return "'%s': '%s'" % (self.key, self.value)
 
 
+class Domains(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    pid = db.Column(db.Integer, default=0)
+    name = db.Column(db.String(255), nullable=False)
+    ssl = db.Column(db.Boolean(), default=True)
+    child = db.Column(db.Integer, default=None)
+
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return "<Domain(id='%s', pid='%s', name='%s', ssl='%s', child='%s')>" % (self.id, self.pid, self.name, self.ssl, self.child)
+
+
 @app.route('/')
 def page_index():
     settings = Settings.query.offset(2).all() if current_user.is_authenticated else None
