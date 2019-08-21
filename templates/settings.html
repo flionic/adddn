@@ -39,7 +39,7 @@
     <script type="text/javascript">
         $(document).ready(function () {
             $('.nav-settings').addClass('active');
-            $('.btn-add-domain').click(function () {
+            $('.btn-add-domain').click(function (e) {
                 make_rq('/addDomain', {'domain': $('input[name=new_domain]').val()}, e);
             });
         });
