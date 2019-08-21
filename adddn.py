@@ -74,10 +74,10 @@ class Settings(db.Model):
 
 class Domains(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    pid = db.Column(db.Integer, default=0)
+    pid = db.Column(db.Integer)
     name = db.Column(db.String(255), nullable=False)
     ssl = db.Column(db.Boolean(), default=True)
-    child = db.Column(db.Integer, default=None)
+    child = db.Column(db.Integer)
 
     def __init__(self, name):
         self.name = name
