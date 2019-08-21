@@ -32,16 +32,7 @@
                             data-show-toggle="true"
                             data-show-fullscreen="true"
                             data-show-export="true"
-                            data-show-footer="true"
-                            {#data-show-columns="true"#}
-                            {#data-detail-view="true"#}
-                            {#data-click-to-select="true"#}
-                            {#data-minimum-count-columns="200"#}
-                            {#data-side-pagination="server"#}
-                            {#data-pagination="true"#}
-                            {#data-show-pagination-switch="true"#}
-                            {#data-page-list="[10, 25, 50, 100, all]"#}
-                            {#data-url="https://examples.wenzhixin.net.cn/examples/bootstrap_table/data"#}>
+                            data-show-footer="true">
                     </table>
                 </div>
             </div>
@@ -53,7 +44,6 @@
     <script src="https://unpkg.com/bootstrap-table@1.15.4/dist/bootstrap-table.min.js"></script>
     <script src="https://unpkg.com/bootstrap-table@1.15.4/dist/extensions/treegrid/bootstrap-table-treegrid.min.js"></script>
     <script src="https://unpkg.com/tableexport.jquery.plugin/tableExport.min.js"></script>
-    {#<script src="https://unpkg.com/bootstrap-table@1.15.4/dist/bootstrap-table.min.js"></script>#}
     <script src="https://unpkg.com/bootstrap-table@1.15.4/dist/bootstrap-table-locale-all.min.js"></script>
     <script src="https://unpkg.com/bootstrap-table@1.15.4/dist/extensions/export/bootstrap-table-export.min.js"></script>
     <script type="text/javascript">
@@ -71,7 +61,6 @@
                 url: 'static/treegrid.json',
                 locale: 'ru-RU',
                 striped: true,
-                {#sidePagination: 'server',#}
                 idField: 'id',
                 showColumns: true,
                 columns: [{
@@ -98,8 +87,6 @@
                     title: 'ID',
                     sortable: true,
                     align: 'center',
-                    {#events: window.operateEvents,#}
-                    {#formatter: operateFormatter#}
                 }],
                 treeShowField: 'name',
                 parentIdField: 'pid',
@@ -110,7 +97,6 @@
                         $table.treegrid({
                             treeColumn: 1,
                             initialState: 'collapsed',
-                            {#expanderTemplate: '<i class="fas chevron-down"></i>',#}
                             expanderExpandedClass: 'fa fa-minus',
                             expanderCollapsedClass: 'fa fa-plus',
                             onChange: function () {
@@ -180,58 +166,5 @@
         $(function () {
             initTable()
         })
-
-        function operateFormatter(value, row, index) {
-            return [
-                '<a class="remove" href="javascript:void(0)" title="Remove">',
-                '<i class="fa fa-trash"></i>',
-                '</a>'
-            ].join('')
-        }
-
-        window.operateEvents = {
-            'click .like': function (e, value, row, index) {
-                alert('Вы нажали лайк на строке ' + JSON.stringify(row))
-            },
-            'click .remove': function (e, value, row, index) {
-                $table.bootstrapTable('remove', {
-                    field: 'id',
-                    values: [row.id]
-                })
-            }
-        }
-
-        function typeFormatter(value, row, index) {
-            if (value === 'menu') {
-                return 'menu'
-            }
-            if (value === 'button') {
-                return 'button'
-            }
-            if (value === 'api') {
-                return 'api'
-            }
-            return '-'
-        }
-
-        function statusFormatter(value, row, index) {
-            if (value === 1) {
-                return '<span class="label label-success">success</span>'
-            }
-            return '<span class="label label-default">default</span>'
-        }
-
-        function totalNameFormatter(data) {
-            return data.length
-        }
-
-        function totalPriceFormatter(data) {
-            var field = this.field
-            return '' + data.map(function (row) {
-                return +row[field].substring(1)
-            }).reduce(function (sum, i) {
-                return sum + i
-            }, 0)
-        }
     </script>
 {% endblock %}
