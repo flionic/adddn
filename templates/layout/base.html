@@ -77,9 +77,11 @@
 <script>
     function notify(msg, type) {
         var types = ['danger', 'success', 'info'];
-        $('.notify').append($('<span>').attr('class', 'badge badge-' + types[type]).hide().text(msg).fadeIn('fast', function () {
-            $(this).delay(3000).fadeOut('fast');
-        }));
+        $('.notify, .notify .badge').slideUp(200, 'swing', function () {
+            $('.notify').children().remove();
+            $('.notify').append($('<span>').attr('class', 'badge badge-' + types[type]).hide().text(msg));
+            $('.notify, .notify .badge').slideDown(200, 'swing', 'easeOutQuart');
+        });
     }
 
     function make_rq(link, values, e) {
