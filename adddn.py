@@ -251,6 +251,32 @@ def domains_list():
     return jsonify([d.serialize() for d in Domains.query.all()])
 
 
+@app.route('/addDomain', methods=['GET', 'POST'])
+@login_required
+def add_domain():
+    s = open('template.conf').read()
+    s = s.replace('TEMPLATE_DOMAIN', request.json['domain'])
+    f = open(f"/etc/nginx/sites-enabled/{request.json['domain']}.conf", 'w')
+    f.write(s)
+    f.close()
+
+    subprocess.call('service nginx reload', shell=True)
+    subprocess.call(f"certbot --nginx -n certonly --cert-name {request.json['domain']} -d {request.json['domain']}", shell=True)
+
+    s = open('template_ssl.conf').read()
+    s = s.replace('TEMPLATE_DOMAIN', request.json['domain'])
+    s = s.replace('CERT_NAME', request.json['domain'])
+    f = open(f"/etc/nginx/sites-enabled/{request.json['domain']}.conf", 'w')
+    f.write(s)
+    f.close()
+
+    subprocess.call('service nginx reload', shell=True)
+
+    scan_nginx_cfgs()
+
+    return jsonify({'response': 1})
+
+
 def init_app():
     domains = Domains.query.all()
     for d in domains:

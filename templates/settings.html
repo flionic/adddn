@@ -49,6 +49,7 @@
             $('.nav-settings').addClass('active');
             $('.btn-add-domain').click(function (e) {
                 make_rq('/addDomain', {'domain': $('input[name=new_domain]').val()}, e);
+                location.reload();
             });
             $('.btn-scan').click(function (e) {
                 make_rq('/scan', {}, e);
