@@ -232,16 +232,42 @@ def domain_generator():
         # start_index = int(''.join(filter(str.isdigit, d.name.split('.')[0])))
     d_parent = ".".join(d.name.rsplit('.', 2)[1:])
 
-    response = list()
+    domains_new = list()
 
     for i in range(start_index, int(request.args.get('num')) + start_index):
-        response.append(f"https://{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}/")
+        # domains_new.append(f"https://{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}/")
+        domains_new.append(f"{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}")
 
-    # TODO: certbot
+    print(domains_new[0])
+
+    for domain in domains_new:
+        s = open('template.conf').read()
+        s = s.replace('TEMPLATE_DOMAIN', domain)
+        f = open(f"/etc/nginx/sites-enabled/{domain}.conf", 'w')
+        f.write(s)
+        f.close()
+
+    subprocess.call('service nginx reload', shell=True)
+
+    # TODO: create and push no ssl config
+    # TODO: certbot --nginx -n certonly --cert-name adddn.ml -d adddn.ml,1.testadn.ml,2.testadn.ml
+    # TODO: if certbot pass - remake ssl config
 
     nginx = subprocess.check_output(["service", "nginx", "reload"])
     # print(nginx)
-    return '\n'.join(response)
+    scan_nginx_cfgs()
+
+    subprocess.call(f"certbot --nginx -n certonly --cert-name {domains_new[0]} -d {','.join(domains_new)}", shell=True)
+
+    for domain in domains_new:
+        s = open('template_ssl.conf').read()
+        s = s.replace('TEMPLATE_DOMAIN', domain)
+        s = s.replace('CERT_NAME', domains_new[0])
+        f = open(f"/etc/nginx/sites-enabled/{domain}.conf", 'w')
+        f.write(s)
+        f.close()
+
+    return '\n'.join([f"https://{d}/" for d in domains_new])
 
 
 @app.route('/getDomains', methods=['GET', 'POST'])
