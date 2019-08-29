@@ -62,6 +62,13 @@
                     data: JSON.stringify({'domain': $('input[name=new_domain]').val()}),
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
+                    beforeSend: function(){
+                        ts = new Date().getTime();
+                        load_timer = setInterval(function(){
+                            timer = Math.round((new Date().getTime() - ts) / 1000);
+                            $('.badge.badge-info').text('Обработка, прошло ' + timer + ' сек.');
+                        }, 1000);
+                    },
                     success: function (data) {
                         console.log(data);
                         var lang_ru = {'ssl': {false: 'без', true: 'с'}};
@@ -76,6 +83,7 @@
                     },
                     complete: function () {
                         $(e.target).fadeIn(50);
+                        clearInterval(load_timer);
                     }
                 });
             });
@@ -87,6 +95,13 @@
                     type: "POST",
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
+                    beforeSend: function(){
+                        ts = new Date().getTime();
+                        load_timer = setInterval(function(){
+                            timer = Math.round((new Date().getTime() - ts) / 1000);
+                            $('.badge.badge-info').text('Обработка, прошло ' + timer + ' сек.');
+                        }, 1000);
+                    },
                     success: function () {
                         notify('Сканирование завершено', 1);
                         $table.bootstrapTable('refresh');
@@ -97,6 +112,7 @@
                     },
                     complete: function () {
                         $(e.target).fadeIn(50);
+                        clearInterval(load_timer);
                     }
                 });
             })
