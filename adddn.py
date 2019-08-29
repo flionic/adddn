@@ -103,7 +103,7 @@ class Domains(db.Model, Serializer):
     id = db.Column(db.Integer, primary_key=True)
     pid = db.Column(db.Integer)
     name = db.Column(db.String(255), nullable=False)
-    ssl = db.Column(db.Boolean(), default=True)
+    ssl = db.Column(db.Boolean(), default=None)
     child = db.Column(db.Integer)
 
     def __init__(self, name):
