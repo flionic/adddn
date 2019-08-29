@@ -21,7 +21,7 @@ app.url_map.strict_slashes = False
 app.wsgi_app = ProxyFix(app.wsgi_app)
 app.config['APP_NAME'] = 'domain_gen'
 app.config['APP_TITLE'] = 'Генератор конфигов'
-app.config['VERSION'] = '1.0.0'
+app.config['VERSION'] = '1.0.1'
 app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY', '7-DEV_MODE_KEY-7')
 
 db_link = 'sqlite:///' + os.path.join(basedir, 'main.db')
@@ -251,9 +251,9 @@ def domain_generator():
         with open('template.conf', 'r') as file:
             conf = file.read()
         conf = conf.replace('TEMPLATE_DOMAIN', domain)
-        with open(f"/etc/nginx/sites-available/{domain}.conf", 'w') as file:
+        with open(f"/etc/nginx/sites-available/{domain}", 'w') as file:
             file.write(conf)
-        subprocess.call(f"ln -s /etc/nginx/sites-available/{domain}.conf /etc/nginx/sites-enabled/{domain}.conf", shell=True)
+        subprocess.call(f"ln -s /etc/nginx/sites-available/{domain} /etc/nginx/sites-enabled/{domain}", shell=True)
 
     subprocess.call('service nginx reload', shell=True)
     # nginx = subprocess.check_output(["service", "nginx", "restart"])
@@ -268,7 +268,7 @@ def domain_generator():
             conf = conf.replace('TEMPLATE_DOMAIN', domain)
             conf = conf.replace('CERT_NAME', domains_new[0])
             conf = conf.replace('#NOSLL', '').replace('listen 80;', '')
-            with open(f"/etc/nginx/sites-available/{domain}.conf", 'w') as file:
+            with open(f"/etc/nginx/sites-available/{domain}", 'w') as file:
                 file.write(conf)
             prefix = 'https'
 
@@ -292,9 +292,9 @@ def add_domain():
     with open('template.conf', 'r') as file:
         conf = file.read()
     conf = conf.replace('TEMPLATE_DOMAIN', request.json['domain'])
-    with open(f"/etc/nginx/sites-available/{request.json['domain']}.conf", 'w') as file:
+    with open(f"/etc/nginx/sites-available/{request.json['domain']}", 'w') as file:
         file.write(conf)
-    subprocess.call(f"ln -s /etc/nginx/sites-available/{request.json['domain']}.conf /etc/nginx/sites-enabled/{request.json['domain']}.conf", shell=True)
+    subprocess.call(f"ln -s /etc/nginx/sites-available/{request.json['domain']} /etc/nginx/sites-enabled/{request.json['domain']}", shell=True)
 
     # TODO: move it to function
     subprocess.call('service nginx reload', shell=True)
@@ -303,7 +303,7 @@ def add_domain():
 
     if certbot == 0:
         conf = conf.replace('#NOSLL', '').replace('CERT_NAME', request.json['domain'])
-        with open(f"/etc/nginx/sites-available/{request.json['domain']}.conf", 'w') as file:
+        with open(f"/etc/nginx/sites-available/{request.json['domain']}", 'w') as file:
             file.write(conf)
         resp['ssl'] = True
     else:
