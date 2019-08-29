@@ -34,8 +34,10 @@
             {%- block main -%}
             {%- endblock -%}
         {% else %}
-            <h1 class="cover-heading">Необходима авторизация</h1>
-            <p class="lead"><a href="#" class="btn btn-lg btn-secondary btn-login" data-toggle="modal" data-target="#loginModal">Войти</a></p>
+            {%- block auth -%}
+                <h1 class="cover-heading">Необходима авторизация</h1>
+                <p class="lead"><a href="#" class="btn btn-lg btn-secondary btn-login" data-toggle="modal" data-target="#loginModal">Войти</a></p>
+            {%- endblock -%}
         {% endif %}
     </main>
 
@@ -91,8 +93,6 @@
             url: link,
             type: "POST",
             data: JSON.stringify(values),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
             success: function () {
                 notify('Готово', 1);
                 $('textarea').val('')
@@ -107,6 +107,8 @@
         });
     }
 </script>
+{%- block scripts_anon -%}
+{%- endblock -%}
 {% if current_user.is_authenticated %}
     {%- block scripts -%}
     {%- endblock -%}

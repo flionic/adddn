@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.7
 import os
 import subprocess
+from datetime import datetime
 
 import bcrypt
 import flask_sqlalchemy
@@ -131,6 +132,8 @@ def d_sort(e):
 
 @app.route('/')
 def page_index():
+    if Settings.query.filter_by(key='installed').first() is None:
+        return redirect(url_for('act_install'))
     return render_template('index.html', p_domains=Domains.query.filter_by(pid=0).all())
 
 
@@ -146,7 +149,7 @@ def login():
         return redirect(url_for('index'))
     password = Settings.query.filter_by(key='password').first()
     # elif bcrypt.checkpw(str.encode(request.form['password']), str.encode(password.value)) is False:
-    if bcrypt.checkpw(str.encode(request.form['password']), str.encode(password.value)) is False:
+    if bcrypt.checkpw(str.encode(request.form['password']), password.value) is False:
         flash('Неверный пароль', 'error')
     else:
         login_user(Settings.query.filter_by(key='username').first())
@@ -157,7 +160,25 @@ def login():
 @app.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for('page_index'))
+
+
+@app.route('/actInstall', methods=['GET', 'POST'])
+def act_install():
+    if Settings.query.filter_by(key='installed').first():
+        return redirect(url_for('page_index')), 302
+    if request.method == 'GET':
+        return render_template('register.html')
+    if request.method == 'POST':
+        installed = Settings('installed', datetime.now())
+        username = Settings('username', 'admin')
+        password = Settings('password', bcrypt.hashpw(str.encode(request.form['password']), bcrypt.gensalt()))
+        db.session.add(installed)
+        db.session.add(username)
+        db.session.add(password)
+        db.session.commit()
+        login_user(Settings.query.filter_by(key='username').first())
+        return jsonify({"status": "registered"})
 
 
 @app.route('/update-cfg', methods=['POST'])
