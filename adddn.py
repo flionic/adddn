@@ -135,7 +135,7 @@ def d_sort(e):
 def page_index():
     if Settings.query.filter_by(key='installed').first() is None:
         return redirect(url_for('act_install'))
-    p_domains = Domains.query.filter_by(pid=0).all()
+    p_domains = Domains.query.filter_by(pid=0).filter_by(hide=False).all()
     geos = open('geos.txt').read().split('\n')
     return render_template('index.html', p_domains=p_domains, geos=geos)
 
@@ -280,7 +280,7 @@ def domain_generator():
 @login_required
 def domains_list():
     # TODO: мб кеш?
-    return jsonify([d.serialize() for d in Domains.query.all()])
+    return jsonify([d.serialize() for d in Domains.query.filter_by(hide=False).all()])
     # return jsonify([d.serialize() for d in Domains.query.filter_by(pid=0).all()])
 
 
@@ -318,7 +318,8 @@ def add_domain():
 @login_required
 def remove_domains():
     for d in request.json:
-        Domains.query.filter_by(id=d['id']).delete()
+        # Domains.query.filter_by(id=d['id']).delete()
+        Domains.query.filter_by(id=d['id']).first().hide = True
     db.session.commit()
     return jsonify({'response': 1})
 
