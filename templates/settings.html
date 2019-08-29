@@ -142,19 +142,19 @@
                 }, {
                     field: 'name',
                     title: 'Домен',
-                    sortable: true,
+                    {#sortable: true,#}
                     footerFormatter: totalDomains
                 }, {
                     field: 'child',
                     title: 'Поддомены',
                     align: 'center',
-                    sortable: true,
+                    {#sortable: true,#}
                     formatter: childrenFormatter
                 }, {
                     field: 'id',
                     title: 'ID',
-                    sortable: true,
-                    align: 'center',
+                    {#sortable: true,#}
+                    align: 'center'
                 }],
                 treeShowField: 'name',
                 parentIdField: 'pid',
