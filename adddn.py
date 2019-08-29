@@ -230,8 +230,8 @@ def domain_generator():
     start_index = 0
     domains_new = list()
     prefix = 'http'
-
     # TODO: добавлять в базу уровень поддомена без цифры?
+
     d = Domains.query.filter_by(id=int(request.args.get('domain_id'))).first()
     if d.child > 0:
         cd = Domains.query.filter_by(pid=int(request.args.get('domain_id'))).order_by(Domains.id.asc())
@@ -241,20 +241,16 @@ def domain_generator():
                 index = 0 if index is '' else int(index)
                 start_index = index if index > start_index else start_index
                 cd = i
-        # what is it?
         if isinstance(cd, flask_sqlalchemy.BaseQuery):
             cd = cd.first()
         else:
             start_index += 1
-            # start_index = int(''.join(filter(str.isdigit, cd.name.split('.')[0])))
         d_parent = ".".join(cd.name.rsplit('.', 2)[1:])
     else:
         d_parent = d.name
 
     for i in range(start_index, int(request.args.get('num')) + start_index):
         domains_new.append(f"{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}")
-
-    # return '\n'.join(['!!! TEST MODE !!!'] + [f"https://{d}/" for d in domains_new])
 
     for domain in domains_new:
         s = open('template.conf').read()
@@ -264,20 +260,11 @@ def domain_generator():
         f.close()
 
     subprocess.call('service nginx reload', shell=True)
-
     # nginx = subprocess.check_output(["service", "nginx", "restart"])
-    # print(nginx)
-    # certbot = subprocess.check_output(f"certbot --nginx -n certonly --cert-name {domains_new[0]} -d {','.join(domains_new)}", shell=True)
-    # print(f"\n\n\n{certbot}")
-
-    find_nginx_conf()
 
     # TODO: ping new domain for verify if
-    # TODO: only move it to function
-    # TODO: certbot --nginx -n certonly --cert-name adddn.ml -d adddn.ml,1.testadn.ml,2.testadn.ml
-
+    # TODO: move it to function
     certbot = subprocess.call(f"certbot --nginx -n certonly --cert-name {domains_new[0]} -d {','.join(domains_new)}", shell=True, universal_newlines=True)
-
     if certbot == 0:
         for domain in domains_new:
             s = open('template_ssl.conf').read()
@@ -287,6 +274,8 @@ def domain_generator():
             f.write(s)
             f.close()
             prefix = 'https'
+
+    find_nginx_conf()
     return '\n'.join([f"{prefix}://{d}/" for d in domains_new])
 
 
@@ -308,7 +297,7 @@ def add_domain():
     f.write(s)
     f.close()
 
-    # TODO: only move it to function
+    # TODO: move it to function
     subprocess.call('service nginx reload', shell=True)
 
     certbot = subprocess.call(f"certbot --nginx -n certonly --cert-name {request.json['domain']} -d {request.json['domain']}", shell=True, universal_newlines=True)
