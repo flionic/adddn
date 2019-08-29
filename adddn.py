@@ -224,11 +224,11 @@ def domain_generator():
         domains_new.append(f"{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}")
 
     for domain in domains_new:
-        s = open('template.conf').read()
-        s = s.replace('TEMPLATE_DOMAIN', domain)
-        f = open(f"/etc/nginx/sites-enabled/{domain}.conf", 'w')
-        f.write(s)
-        f.close()
+        with open('template.conf', 'r') as file:
+            conf = file.read()
+        conf = conf.replace('TEMPLATE_DOMAIN', domain)
+        with open(f"/etc/nginx/sites-enabled/{domain}.conf", 'w') as file:
+            file.write(conf)
 
     subprocess.call('service nginx reload', shell=True)
     # nginx = subprocess.check_output(["service", "nginx", "restart"])
@@ -238,12 +238,13 @@ def domain_generator():
     certbot = subprocess.call(f"certbot --nginx -n certonly --cert-name {domains_new[0]} -d {','.join(domains_new)}", shell=True, universal_newlines=True)
     if certbot == 0:
         for domain in domains_new:
-            s = open('template_ssl.conf').read()
-            s = s.replace('TEMPLATE_DOMAIN', domain)
-            s = s.replace('CERT_NAME', domains_new[0])
-            f = open(f"/etc/nginx/sites-enabled/{domain}.conf", 'w')
-            f.write(s)
-            f.close()
+            with open('template.conf', 'r') as file:
+                conf = file.read()
+            conf = conf.replace('TEMPLATE_DOMAIN', domain)
+            conf = conf.replace('CERT_NAME', domains_new[0])
+            conf = conf.replace('#NOSLL', '').replace('listen 80;', '')
+            with open(f"/etc/nginx/sites-enabled/{domain}.conf", 'w') as file:
+                file.write(conf)
             prefix = 'https'
 
     find_nginx_conf()
@@ -262,11 +263,11 @@ def domains_list():
 def add_domain():
     resp = dict()
 
-    s = open('template.conf').read()
-    s = s.replace('TEMPLATE_DOMAIN', request.json['domain'])
-    f = open(f"/etc/nginx/sites-enabled/{request.json['domain']}.conf", 'w')
-    f.write(s)
-    f.close()
+    with open('template.conf', 'r') as file:
+        conf = file.read()
+    conf = conf.replace('TEMPLATE_DOMAIN', request.json['domain'])
+    with open(f"/etc/nginx/sites-enabled/{request.json['domain']}.conf", 'w') as file:
+        file.write(conf)
 
     # TODO: move it to function
     subprocess.call('service nginx reload', shell=True)
@@ -274,12 +275,9 @@ def add_domain():
     certbot = subprocess.call(f"certbot --nginx -n certonly --cert-name {request.json['domain']} -d {request.json['domain']}", shell=True, universal_newlines=True)
 
     if certbot == 0:
-        s = open('template_ssl.conf').read()
-        s = s.replace('TEMPLATE_DOMAIN', request.json['domain'])
-        s = s.replace('CERT_NAME', request.json['domain'])
-        f = open(f"/etc/nginx/sites-enabled/{request.json['domain']}.conf", 'w')
-        f.write(s)
-        f.close()
+        conf = conf.replace('listen 80;', '').replace('#NOSLL', '').replace('CERT_NAME', request.json['domain'])
+        with open(f"/etc/nginx/sites-enabled/{request.json['domain']}.conf", 'w') as file:
+            file.write(conf)
         resp['ssl'] = True
     else:
         resp['ssl'] = False
