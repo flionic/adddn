@@ -8,14 +8,14 @@
     <div class="settings jumbotron text-dark row">
         <div class="col-12">
             <div id="toolbar">
-{#                <button id="remove" class="btn btn-danger" disabled>Удалить</button>#}
+                {#                <button id="remove" class="btn btn-danger" disabled>Удалить</button>#}
             </div>
             <table id="table" data-toolbar="#toolbar" data-show-footer="true" data-response-handler="responseHandler" data-show-refresh="true" data-id-field="id"
                    data-detail-formatter="detailFormatter" data-show-toggle="true" data-show-fullscreen="true" data-show-export="true"
-{#                   data-pagination="true"#}
-{#                   data-show-pagination-switch="true"#}
-{#                   data-page-list="[10, 25, 50, 100, all]"#}
-{#                   data-minimum-count-columns="2"#}
+                    {#                   data-pagination="true"#}
+                    {#                   data-show-pagination-switch="true"#}
+                    {#                   data-page-list="[10, 25, 50, 100, all]"#}
+                    {#                   data-minimum-count-columns="2"#}
             >
             </table>
         </div>
@@ -106,6 +106,12 @@
         var $table = $('#table')
         var $remove = $('#remove')
         var selections = []
+
+        /*
+        var data = {'children':0, 'id':1200, 'name':"bl4.bla.bla", 'pid':54, 'ssl':0}
+        $table.bootstrapTable('append', data)
+        $table.bootstrapTable('refresh', {url: '/static/treegrid.json'})
+         */
 
         function initTable() {
             $table.bootstrapTable('destroy').bootstrapTable({
