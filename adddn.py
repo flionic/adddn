@@ -300,7 +300,7 @@ def add_domain():
     certbot = subprocess.call(f"certbot --nginx -n certonly --cert-name {request.json['domain']} -d {request.json['domain']}", shell=True, universal_newlines=True)
 
     if certbot == 0:
-        conf = conf.replace('listen 80;', '').replace('#NOSLL', '').replace('CERT_NAME', request.json['domain'])
+        conf = conf.replace('#NOSLL', '').replace('CERT_NAME', request.json['domain'])
         with open(f"/etc/nginx/sites-available/{request.json['domain']}.conf", 'w') as file:
             file.write(conf)
         resp['ssl'] = True

@@ -4,7 +4,7 @@ Documentation=https://adddn.ml
 
 [Service]
 WorkingDirectory=/var/www/adddn
-ExecStart=/usr/bin/python3.7 /var/www/adddn/wsgi.py
+ExecStart=/usr/bin/python3 /var/www/adddn/wsgi.py
 Restart=always
 
 [Install]
