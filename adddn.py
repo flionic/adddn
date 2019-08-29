@@ -134,7 +134,9 @@ def d_sort(e):
 def page_index():
     if Settings.query.filter_by(key='installed').first() is None:
         return redirect(url_for('act_install'))
-    return render_template('index.html', p_domains=Domains.query.filter_by(pid=0).all())
+    p_domains = Domains.query.filter_by(pid=0).all()
+    geos = open('geos.txt').read().split('\n')
+    return render_template('index.html', p_domains=p_domains, geos=geos)
 
 
 @app.route('/settings')

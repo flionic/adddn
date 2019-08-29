@@ -7,7 +7,17 @@
                 <div class="col">
                     <div class="form-group row">
                         <label class="col col-form-label">
-                            <input type="text" class="form-control" name="geo" placeholder="Гео" value="">
+{#                            <input type="text" class="form-control" name="geo" placeholder="Гео" value="">#}
+                            <select class="form-control" name="geo">
+                                {% if geos %}
+                                    <option disabled selected>Гео...</option>
+                                    {% for g in geos %}
+                                        <option value="{{ g|lower }}">{{ g }}</option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option disabled selected>geos.txt пуст</option>
+                                {% endif %}
+                            </select>
                         </label>
                     </div>
                 </div>
