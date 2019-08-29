@@ -230,7 +230,7 @@ def domain_generator():
     start_index = 0
     domains_new = list()
     prefix = 'http'
-    # TODO: добавлять в базу уровень поддомена без цифры?
+    # TODO: добавлять в базу уровень поддомена без цифры? И путь конфига
 
     d = Domains.query.filter_by(id=int(request.args.get('domain_id'))).first()
     if d.child > 0:
@@ -321,6 +321,7 @@ def add_domain():
 def init_app():
     db.create_all()
     # os.path.exists('main.db')
+    # TODO: установить пароль, если он не был задан
 
 
 init_app()
