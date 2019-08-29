@@ -211,10 +211,16 @@ def find_nginx_conf():
             d_new = Domains(d)  # TODO находить сертификат LE
             db.session.add(d_new)
             db.session.commit()
+
     domains = Domains.query.all()
     for d in domains:
         d.child = len(Domains.query.filter_by(pid=d.id).all())
     db.session.commit()
+
+    subprocess.call('service nginx reload', shell=True)
+
+    # TODO: check ssl and gen ssl btn
+
     return jsonify({'response': 1})
 
 
@@ -223,36 +229,30 @@ def find_nginx_conf():
 def domain_generator():
     start_index = 0
     domains_new = list()
+    prefix = 'http'
 
-    dd = Domains.query.filter_by(id=int(request.args.get('domain_id'))).first()
-
-    if dd.child > 0:
-        d = Domains.query.filter_by(pid=int(request.args.get('domain_id'))).order_by(Domains.id.asc())
-        for i in d.all():
+    # TODO: добавлять в базу уровень поддомена без цифры?
+    d = Domains.query.filter_by(id=int(request.args.get('domain_id'))).first()
+    if d.child > 0:
+        cd = Domains.query.filter_by(pid=int(request.args.get('domain_id'))).order_by(Domains.id.asc())
+        for i in cd.all():
             if request.args.get('geo') in i.name.split('.', 2)[0]:
                 index = (i.name.split('.', 2)[0]).replace(request.args.get('geo'), '')
                 index = 0 if index is '' else int(index)
                 start_index = index if index > start_index else start_index
-                d = i
+                cd = i
         # what is it?
-        if isinstance(d, flask_sqlalchemy.BaseQuery):
-            d = d.first()
-            if d is None:
-                d = Domains.query.filter_by(id=int(request.args.get('domain_id'))).first()
-                print('2')
+        if isinstance(cd, flask_sqlalchemy.BaseQuery):
+            cd = cd.first()
         else:
             start_index += 1
-        print(d)
-            # start_index = int(''.join(filter(str.isdigit, d.name.split('.')[0])))
-        d_parent = ".".join(d.name.rsplit('.', 2)[1:])
+            # start_index = int(''.join(filter(str.isdigit, cd.name.split('.')[0])))
+        d_parent = ".".join(cd.name.rsplit('.', 2)[1:])
     else:
-        d_parent = dd.name
+        d_parent = d.name
 
     for i in range(start_index, int(request.args.get('num')) + start_index):
-        # domains_new.append(f"https://{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}/")
         domains_new.append(f"{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}")
-
-    print(domains_new[0])
 
     # return '\n'.join(['!!! TEST MODE !!!'] + [f"https://{d}/" for d in domains_new])
 
@@ -265,25 +265,29 @@ def domain_generator():
 
     subprocess.call('service nginx reload', shell=True)
 
-    # TODO: create and push no ssl config
-    # TODO: certbot --nginx -n certonly --cert-name adddn.ml -d adddn.ml,1.testadn.ml,2.testadn.ml
-    # TODO: if certbot pass - remake ssl config
-
-    nginx = subprocess.check_output(["service", "nginx", "reload"])
+    # nginx = subprocess.check_output(["service", "nginx", "restart"])
     # print(nginx)
+    # certbot = subprocess.check_output(f"certbot --nginx -n certonly --cert-name {domains_new[0]} -d {','.join(domains_new)}", shell=True)
+    # print(f"\n\n\n{certbot}")
+
     find_nginx_conf()
 
-    subprocess.call(f"certbot --nginx -n certonly --cert-name {domains_new[0]} -d {','.join(domains_new)}", shell=True)
+    # TODO: ping new domain for verify if
+    # TODO: only move it to function
+    # TODO: certbot --nginx -n certonly --cert-name adddn.ml -d adddn.ml,1.testadn.ml,2.testadn.ml
 
-    for domain in domains_new:
-        s = open('template_ssl.conf').read()
-        s = s.replace('TEMPLATE_DOMAIN', domain)
-        s = s.replace('CERT_NAME', domains_new[0])
-        f = open(f"/etc/nginx/sites-enabled/{domain}.conf", 'w')
-        f.write(s)
-        f.close()
+    certbot = subprocess.call(f"certbot --nginx -n certonly --cert-name {domains_new[0]} -d {','.join(domains_new)}", shell=True, universal_newlines=True)
 
-    return '\n'.join([f"https://{d}/" for d in domains_new])
+    if certbot == 0:
+        for domain in domains_new:
+            s = open('template_ssl.conf').read()
+            s = s.replace('TEMPLATE_DOMAIN', domain)
+            s = s.replace('CERT_NAME', domains_new[0])
+            f = open(f"/etc/nginx/sites-enabled/{domain}.conf", 'w')
+            f.write(s)
+            f.close()
+            prefix = 'https'
+    return '\n'.join([f"{prefix}://{d}/" for d in domains_new])
 
 
 @app.route('/getDomains', methods=['GET', 'POST'])
@@ -296,27 +300,33 @@ def domains_list():
 @app.route('/addDomain', methods=['GET', 'POST'])
 @login_required
 def add_domain():
+    resp = dict()
+
     s = open('template.conf').read()
     s = s.replace('TEMPLATE_DOMAIN', request.json['domain'])
     f = open(f"/etc/nginx/sites-enabled/{request.json['domain']}.conf", 'w')
     f.write(s)
     f.close()
 
+    # TODO: only move it to function
     subprocess.call('service nginx reload', shell=True)
-    subprocess.call(f"certbot --nginx -n certonly --cert-name {request.json['domain']} -d {request.json['domain']}", shell=True)
 
-    s = open('template_ssl.conf').read()
-    s = s.replace('TEMPLATE_DOMAIN', request.json['domain'])
-    s = s.replace('CERT_NAME', request.json['domain'])
-    f = open(f"/etc/nginx/sites-enabled/{request.json['domain']}.conf", 'w')
-    f.write(s)
-    f.close()
+    certbot = subprocess.call(f"certbot --nginx -n certonly --cert-name {request.json['domain']} -d {request.json['domain']}", shell=True, universal_newlines=True)
 
-    subprocess.call('service nginx reload', shell=True)
+    if certbot == 0:
+        s = open('template_ssl.conf').read()
+        s = s.replace('TEMPLATE_DOMAIN', request.json['domain'])
+        s = s.replace('CERT_NAME', request.json['domain'])
+        f = open(f"/etc/nginx/sites-enabled/{request.json['domain']}.conf", 'w')
+        f.write(s)
+        f.close()
+        resp['ssl'] = True
+    else:
+        resp['ssl'] = False
 
     find_nginx_conf()
-
-    return jsonify({'response': 1})
+    resp['response'] = 1
+    return jsonify(resp)
 
 
 def init_app():
