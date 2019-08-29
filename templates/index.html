@@ -6,17 +6,17 @@
             <div class="row">
                 <div class="col">
                     <div class="form-group row">
-                        <label class="col col-form-label">Гео
-                            <input type="text" class="form-control" name="geo" placeholder="ro" value="">
+                        <label class="col col-form-label">
+                            <input type="text" class="form-control" name="geo" placeholder="Гео" value="">
                         </label>
                     </div>
                 </div>
                 <div class="col-5">
                     <div class="form-group row">
-                        <label class="col col-form-label">Домен
-                            <select class="form-control form-control-sm" name="domain">
+                        <label class="col col-form-label">
+                            <select class="form-control form-control-sm" name="domain_id">
                                 {% if p_domains %}
-                                    <option disabled selected>Выберите...</option>
+                                    <option disabled selected>Домен...</option>
                                     {% for d in p_domains %}
                                         <option value="{{ d.id }}">{{ d.name }} ({{ d.child + 1 }} шт.)</option>
                                     {% endfor %}
@@ -29,8 +29,8 @@
                 </div>
                 <div class="col">
                     <div class="form-group row">
-                        <label class="col col-form-label text-right">Кол-во
-                            <input type="text" class="form-control text-right" name="num" placeholder="10" value="">
+                        <label class="col col-form-label text-right">
+                            <input type="text" class="form-control text-right" name="num" placeholder="Кол-во" value="">
                         </label>
                     </div>
                 </div>

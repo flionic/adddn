@@ -201,7 +201,9 @@ def push_domain():
 
 @app.route('/scan', methods=['POST'])
 @login_required
-def scan_nginx_cfgs():
+def find_nginx_conf():
+    Domains.query.delete()
+    db.session.commit()
     domains = subprocess.check_output(["sh", "/var/www/adddn/nxcfgs_get.sh"]).decode()[:-1].split('\n')
     domains.sort(key=d_sort)
     for d in domains:
@@ -209,36 +211,50 @@ def scan_nginx_cfgs():
             d_new = Domains(d)  # TODO находить сертификат LE
             db.session.add(d_new)
             db.session.commit()
+    domains = Domains.query.all()
+    for d in domains:
+        d.child = len(Domains.query.filter_by(pid=d.id).all())
+    db.session.commit()
     return jsonify({'response': 1})
 
 
 @app.route('/generateDomains', methods=['GET', 'POST'])  # nxcfgen
 @login_required
 def domain_generator():
-    print(request.args)
-    d = Domains.query.filter_by(pid=int(request.args.get('domain'))).order_by(Domains.id.asc())
     start_index = 0
-    for i in d.all():
-        if request.args.get('geo') in i.name.split('.', 2)[0]:
-            index = (i.name.split('.', 2)[0]).replace(request.args.get('geo'), '')
-            index = 0 if index is '' else int(index)
-            start_index = index if index > start_index else start_index
-            d = i
-    # what is it?
-    if isinstance(d, flask_sqlalchemy.BaseQuery):
-        d = d.first()
-    else:
-        start_index += 1
-        # start_index = int(''.join(filter(str.isdigit, d.name.split('.')[0])))
-    d_parent = ".".join(d.name.rsplit('.', 2)[1:])
-
     domains_new = list()
+
+    dd = Domains.query.filter_by(id=int(request.args.get('domain_id'))).first()
+
+    if dd.child > 0:
+        d = Domains.query.filter_by(pid=int(request.args.get('domain_id'))).order_by(Domains.id.asc())
+        for i in d.all():
+            if request.args.get('geo') in i.name.split('.', 2)[0]:
+                index = (i.name.split('.', 2)[0]).replace(request.args.get('geo'), '')
+                index = 0 if index is '' else int(index)
+                start_index = index if index > start_index else start_index
+                d = i
+        # what is it?
+        if isinstance(d, flask_sqlalchemy.BaseQuery):
+            d = d.first()
+            if d is None:
+                d = Domains.query.filter_by(id=int(request.args.get('domain_id'))).first()
+                print('2')
+        else:
+            start_index += 1
+        print(d)
+            # start_index = int(''.join(filter(str.isdigit, d.name.split('.')[0])))
+        d_parent = ".".join(d.name.rsplit('.', 2)[1:])
+    else:
+        d_parent = dd.name
 
     for i in range(start_index, int(request.args.get('num')) + start_index):
         # domains_new.append(f"https://{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}/")
         domains_new.append(f"{request.args.get('geo')}{i if i > 0 else ''}.{d_parent}")
 
     print(domains_new[0])
+
+    # return '\n'.join(['!!! TEST MODE !!!'] + [f"https://{d}/" for d in domains_new])
 
     for domain in domains_new:
         s = open('template.conf').read()
@@ -255,7 +271,7 @@ def domain_generator():
 
     nginx = subprocess.check_output(["service", "nginx", "reload"])
     # print(nginx)
-    scan_nginx_cfgs()
+    find_nginx_conf()
 
     subprocess.call(f"certbot --nginx -n certonly --cert-name {domains_new[0]} -d {','.join(domains_new)}", shell=True)
 
@@ -298,16 +314,12 @@ def add_domain():
 
     subprocess.call('service nginx reload', shell=True)
 
-    scan_nginx_cfgs()
+    find_nginx_conf()
 
     return jsonify({'response': 1})
 
 
 def init_app():
-    domains = Domains.query.all()
-    for d in domains:
-        d.child = len(Domains.query.filter_by(pid=d.id).all())
-    db.session.commit()
     db.create_all()
     # os.path.exists('main.db')
 
