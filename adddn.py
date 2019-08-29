@@ -106,6 +106,7 @@ class Domains(db.Model, Serializer):
     name = db.Column(db.String(255), nullable=False)
     ssl = db.Column(db.Boolean(), default=None)
     child = db.Column(db.Integer)
+    hide = db.Column(db.Boolean(), default=False)
 
     def __init__(self, name):
         self.name = name
@@ -196,8 +197,8 @@ def update_settings():
 @app.route('/scan', methods=['POST'])
 @login_required
 def find_nginx_conf():
-    Domains.query.delete()
-    db.session.commit()
+    # Domains.query.delete()
+    # db.session.commit()
     domains = subprocess.check_output(["sh", "/var/www/adddn/nxcfgs_get.sh"]).decode()[:-1].split('\n')
     domains.sort(key=d_sort)
     for d in domains:
@@ -280,6 +281,7 @@ def domain_generator():
 def domains_list():
     # TODO: мб кеш?
     return jsonify([d.serialize() for d in Domains.query.all()])
+    # return jsonify([d.serialize() for d in Domains.query.filter_by(pid=0).all()])
 
 
 @app.route('/addDomain', methods=['GET', 'POST'])
@@ -312,10 +314,17 @@ def add_domain():
     return jsonify(resp)
 
 
+@app.route('/removeDomains', methods=['POST'])
+@login_required
+def remove_domains():
+    for d in request.json:
+        Domains.query.filter_by(id=d['id']).delete()
+    db.session.commit()
+    return jsonify({'response': 1})
+
+
 def init_app():
     db.create_all()
-    # os.path.exists('main.db')
-    # TODO: установить пароль, если он не был задан
 
 
 init_app()

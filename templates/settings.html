@@ -8,7 +8,7 @@
     <div class="settings jumbotron text-dark row">
         <div class="col-12">
             <div id="toolbar">
-                {#                <button id="remove" class="btn btn-danger" disabled>Удалить</button>#}
+                <button id="remove" class="btn btn-danger" disabled>Удалить</button>
             </div>
             <table id="table" data-toolbar="#toolbar" data-show-footer="true" data-response-handler="responseHandler" data-show-refresh="true" data-id-field="id"
                    data-detail-formatter="detailFormatter" data-show-toggle="true" data-show-fullscreen="true" data-show-export="true"
@@ -175,7 +175,7 @@
                 }
             })
             $table.on('load-success.bs.table', function (e, name, args) {
-                console.log(name, args)
+                // console.log(name, args)
                 $('.treegrid-expanded .treegrid-expander').append('<i class="fa" aria-hidden="true"></i>');
             })
             $table.on('check.bs.table uncheck.bs.table ' +
@@ -187,9 +187,38 @@
                     // push or splice the selections if you want to save all data selections
                 })
             $table.on('all.bs.table', function (e, name, args) {
-                console.log(name, args)
+                // console.log(name, args)
             })
-            $remove.click(function () {
+            $remove.click(function (e) {
+                $(e.target).fadeOut(50);
+                notify('Обработка..', 2);
+                $.ajax({
+                    url: '/removeDomains',
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    data: JSON.stringify($table.bootstrapTable('getSelections')),
+                    beforeSend: function(){
+                        ts = new Date().getTime();
+                        load_timer = setInterval(function(){
+                            timer = Math.round((new Date().getTime() - ts) / 1000);
+                            $('.badge.badge-info').text('Обработка, прошло ' + timer + ' сек.');
+                        }, 1000);
+                    },
+                    success: function () {
+                        notify('Удалено', 1);
+                        $table.bootstrapTable('refresh');
+                    },
+                    error: function (data) {
+                        console.log(data);
+                        notify('Ошибка ' + data.status + ': ' + ('responseJSON' in data ? data.responseJSON['error_msg'] : data.statusText), 0);
+                    },
+                    complete: function () {
+                        $(e.target).fadeIn(50);
+                        clearInterval(load_timer);
+                    }
+                });
+
                 var ids = getIdSelections()
                 $table.bootstrapTable('remove', {
                     field: 'id',
