@@ -70,14 +70,21 @@
             $('.nav-home').addClass('active');
             $('.btn-generate').click(function (e) {
                 {#make_rq('/generateDomains', {'name': 'value'}, e);#}
-
                 $(e.target).fadeOut(50);
                 notify('Обработка..', 2);
+                //var timer = Math.round((new Date().getTime() - ts) / 1000);
                 $.ajax({
                     url: '/generateDomains',
                     data: $('.domain-generator').serialize(),
+                    beforeSend: function(){
+                        ts = new Date().getTime();
+                        load_timer = setInterval(function(){
+                            timer = Math.round((new Date().getTime() - ts) / 1000);
+                            $('.badge.badge-info').text('Обработка, прошло ' + timer + ' сек.');
+                        }, 1000);
+                    },
                     success: function (data) {
-                        notify('Готово', 1);
+                        notify('Сгенерировано за ' + timer + ' сек.', 1);
                         $('textarea').val(data);
                     },
                     error: function (data) {
@@ -86,6 +93,7 @@
                     complete: function (data) {
                         {#console.log(data);#}
                         $(e.target).fadeIn(50);
+                        clearInterval(load_timer);
                     }
                 });
             });
