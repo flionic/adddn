@@ -21,7 +21,7 @@ app.url_map.strict_slashes = False
 app.wsgi_app = ProxyFix(app.wsgi_app)
 app.config['APP_NAME'] = 'domain_gen'
 app.config['APP_TITLE'] = 'Генератор конфигов'
-app.config['VERSION'] = '0.0.1'
+app.config['VERSION'] = '1.0.0'
 app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY', '7-DEV_MODE_KEY-7')
 
 db_link = 'sqlite:///' + os.path.join(basedir, 'main.db')
