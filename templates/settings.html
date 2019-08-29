@@ -8,7 +8,7 @@
     <div class="settings jumbotron text-dark row">
         <div class="col-12">
             <div id="toolbar">
-                <button id="remove" class="btn btn-danger" disabled>Удалить</button>
+{#                <button id="remove" class="btn btn-danger" disabled>Удалить</button>#}
             </div>
             <table id="table" data-toolbar="#toolbar" data-show-footer="true" data-response-handler="responseHandler" data-show-refresh="true" data-id-field="id"
                    data-detail-formatter="detailFormatter" data-show-toggle="true" data-show-fullscreen="true" data-show-export="true"
@@ -213,8 +213,11 @@
             return html.join('')
         }
 
-        $(function () {
-            initTable()
+
+        $(document).ready(function () {
+            $(function () {
+                initTable()
+            })
         })
     </script>
 {% endblock %}
