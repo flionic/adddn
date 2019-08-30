@@ -40,7 +40,12 @@
                 <div class="col">
                     <div class="form-group row">
                         <label class="col col-form-label text-right">
-                            <input type="text" class="form-control text-right" name="num" placeholder="Кол-во" value="">
+                            <select class="form-control form-control-sm" name="num">
+                                <option disabled selected>Кол-во...</option>
+                                {% for i in range(1,11) %}
+                                    <option value="{{ i }}">{{ i }} шт.</option>
+                                {% endfor %}
+                            </select>
                         </label>
                     </div>
                 </div>
