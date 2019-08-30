@@ -260,7 +260,7 @@ def domain_generator():
 
     # TODO: ping new domain for verify if
     # TODO: move it to function
-    certbot = subprocess.call(f"certbot --nginx -n certonly --cert-name {domains_new[0]} -d {','.join(domains_new)}", shell=True, universal_newlines=True)
+    certbot = subprocess.call(f"certbot -n certonly --webroot -w /var/www/bestplace.live --cert-name {domains_new[0]} -d {','.join(domains_new)}", shell=True, universal_newlines=True)
     if certbot == 0:
         for domain in domains_new:
             with open('template.conf', 'r') as file:
@@ -299,7 +299,7 @@ def add_domain():
     # TODO: move it to function
     subprocess.call('service nginx reload', shell=True)
 
-    certbot = subprocess.call(f"certbot --nginx -n certonly --cert-name {request.json['domain']} -d {request.json['domain']}", shell=True, universal_newlines=True)
+    certbot = subprocess.call(f"certbot --nginx -n certonly --webroot -w /var/www/bestplace.live --cert-name {request.json['domain']} -d {request.json['domain']}", shell=True, universal_newlines=True)
 
     if certbot == 0:
         conf = conf.replace('#NOSLL', '').replace('CERT_NAME', request.json['domain'])
