@@ -1,0 +1,68 @@
+#!/bin/sh
+
+exit_with_usage ()
+{
+    echo "Usage: $0 up|down|restart|update|info|log|routes|debug|install|config"
+    exit $1
+}
+
+# export FLASK_APP=wsgi:app
+cd /var/www/adddn/
+
+if [ "$1" = "" ] ; then
+    exit_with_usage 1
+fi
+
+# Scan for --help or unknown argument.
+for ARG in $*
+do
+    case $ARG in
+        --help|-h|help)
+            exit_with_usage 0
+        ;;
+        up|down|restart|update|info|log|routes|debug|install|config)
+        ;;
+        *)
+            exit_with_usage 1
+        ;;
+    esac
+done
+
+for ARG in "$@"
+do
+    case "$ARG" in
+        up)
+            #service adddn start
+            /usr/local/bin/gunicorn --bind unix:/run/adddn/adddn.sock --workers 3 -p /run/adddn/adddn.pid -n adddn -m 007 --access-logfile - --error-logfile - -R wsgi:app
+        ;;
+        down)
+            service adddn stop
+        ;;
+        restart)
+            service adddn restart
+        ;;
+        update)
+            service adddn reload
+        ;;
+        info)
+            service adddn status | grep Active
+        ;;
+        log)
+            journalctl -e -f -u adddn -o cat
+        ;;
+        routes)
+            flask routes
+        ;;
+        debug)
+            export FLASK_ENV=testing
+            export FLASK_DEBUG=1
+            flask run -p 23044
+        ;;
+        install)
+            echo "$0"
+        ;;
+        config)
+            echo "$1"
+        ;;
+esac
+done

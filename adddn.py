@@ -1,6 +1,6 @@
-#!/usr/bin/env python3.7
 import os
 import subprocess
+import threading
 from datetime import datetime
 from time import sleep, time
 
@@ -46,6 +46,11 @@ def load_user(uid):
 @login_manager.unauthorized_handler
 def unauthorized_handler():
     return 'Для этого действия требуется авторизация', 403
+
+
+@app.template_filter('ctime')
+def timectime(s):
+    return datetime.fromtimestamp(int(s))
 
 
 class Serializer(object):
