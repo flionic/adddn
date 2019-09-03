@@ -295,6 +295,11 @@ def domains_list():
 def add_domain():
     resp = dict()
 
+    sd = Domains.query.filter_by(name=request.json['domain']).first()
+    if sd:
+        sd.hide = False
+        db.session.commit()
+
     with open('template.conf', 'r') as file:
         conf = file.read()
     conf = conf.replace('TEMPLATE_DOMAIN', request.json['domain'])
