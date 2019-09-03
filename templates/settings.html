@@ -20,24 +20,68 @@
             </table>
         </div>
         <br>
-        <div class="col-12 text-center row">
-            <div class="col-5 offset-2 form-group">
-                <label class="col col-form-label">
-                    <input class="form-control" type="text" name="new_domain" placeholder="Новый domain.com">
-                </label>
-            </div>
-            <div class="col-3 form-group">
-                <button class="btn btn-success btn-add-domain">Добавить</button>
-            </div>
-            <div class="col-5 offset-2 form-group">
-                <p>Найти все активные nginx домены и их поддомены</p>
-            </div>
-            <div class="col-3 form-group">
-                <button class="btn btn-secondary btn-scan">Сканировать</button>
+        <div class="col-12 row">
+            {#TODO: forms for inputs#}
+            {#TODO: generate this rows from db#}
+            <div class="col-12">
+{#                <p class="">Последняя проверка доменов: <span class="text-success">{{ upd_time | ctime }}</span> (UTC+0)</p>#}
+                <p class="">Последняя проверка доменов: <span class="text-success">{{ upd_time }}</span> (UTC+0)</p>
+                <p class="">Facebook Checker: <span class="text-danger">{{ config['FB_CHECKER'] }}</span></p>
+                <p class="">Telegram Bot: <span class="text-danger">{{ config['TG_BOT'] }}</span></p>
             </div>
             <div class="col-12">
                 <div class="notify text-center"></div>
             </div>
+            <form class="config- col-12 row">
+                <div class="col-md-6 offset-md-3 form-group">
+                    <div class="col">
+                        <p>Найти все активные nginx домены и их поддомены</p>
+                    </div>
+                    <div class="col">
+                        <button class="btn btn-secondary btn-scan">Сканировать</button>
+                    </div>
+                </div>
+            </form>
+            <form class="config- col-12 row">
+                <div class="col-md-6 offset-md-3 form-group">
+                    <label class="col">
+                        <input class="form-control" type="text" name="new_domain" placeholder="Новый domain.com">
+                    </label>
+                    <div class="col">
+                        <button class="btn btn-success btn-add-domain">Добавить</button>
+                    </div>
+                </div>
+            </form>
+            <form class="config col-12 row">
+                <div class="col-md-6 offset-md-3 form-group">
+                    <label class="col">Telegram bot token
+                        <input class="form-control" type="text" name="tg_token" placeholder="548464566:0WX4v3i6yJzsadJS0WXfk2s9SJKswj9pslo" value="{{ config['TG_TOKEN'] }}">
+                    </label>
+                    <div class="col">
+                        <button class="btn btn-success btn-save">Сохранить</button>
+                    </div>
+                </div>
+            </form>
+            <form class="config col-12 row">
+                <div class="col-md-6 offset-md-3 form-group">
+                    <label class="col">Telegram ChatID
+                        <input class="form-control" type="text" name="tg_chat" placeholder="-2412928409" value="{{ config['TG_CHAT'] }}">
+                    </label>
+                    <div class="col">
+                        <button class="btn btn-success btn-save">Сохранить</button>
+                    </div>
+                </div>
+            </form>
+            <form class="config col-12 row">
+                <div class="col-md-6 offset-md-3 form-group">
+                    <label class="col">Facebook Token
+                        <input class="form-control" type="text" name="fb_token" placeholder="402138554839583|0DWdcJk0DWdcPJ0DWdcJkJk_gb2" value="{{ config['FB_TOKEN'] }}">
+                    </label>
+                    <div class="col">
+                        <button class="btn btn-success btn-save">Сохранить</button>
+                    </div>
+                </div>
+            </form>
         </div>
 
     </div>
@@ -53,6 +97,7 @@
         $(document).ready(function () {
             $('.nav-settings').addClass('active');
             $('.btn-add-domain').click(function (e) {
+                e.preventDefault();
                 {#make_rq('/addDomain', {'domain': $('input[name=new_domain]').val()}, e);#}
                 $(e.target).fadeOut(50);
                 notify('Обработка..', 2);
@@ -62,9 +107,9 @@
                     data: JSON.stringify({'domain': $('input[name=new_domain]').val()}),
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
-                    beforeSend: function(){
+                    beforeSend: function () {
                         ts = new Date().getTime();
-                        load_timer = setInterval(function(){
+                        load_timer = setInterval(function () {
                             timer = Math.round((new Date().getTime() - ts) / 1000);
                             $('.badge.badge-info').text('Обработка, прошло ' + timer + ' сек.');
                         }, 1000);
@@ -88,6 +133,7 @@
                 });
             });
             $('.btn-scan').click(function (e) {
+                e.preventDefault();
                 $(e.target).fadeOut(50);
                 notify('Обработка..', 2);
                 $.ajax({
@@ -95,9 +141,9 @@
                     type: "POST",
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
-                    beforeSend: function(){
+                    beforeSend: function () {
                         ts = new Date().getTime();
-                        load_timer = setInterval(function(){
+                        load_timer = setInterval(function () {
                             timer = Math.round((new Date().getTime() - ts) / 1000);
                             $('.badge.badge-info').text('Обработка, прошло ' + timer + ' сек.');
                         }, 1000);
@@ -115,7 +161,39 @@
                         clearInterval(load_timer);
                     }
                 });
-            })
+            });
+            $('form .btn-save').click(function (e) {
+                e.preventDefault();
+                $(e.target).fadeOut(50);
+                notify('Обработка..', 2);
+                var $data = $(this).closest('form').find('input');
+                $.ajax({
+                    url: '/saveConfig',
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    {#data: JSON.stringify($(this).closest('form').serialize()),#}
+                    data: JSON.stringify({'key': $data.attr('name'), 'value': $data.val()}),
+                    beforeSend: function () {
+                        ts = new Date().getTime();
+                        load_timer = setInterval(function () {
+                            timer = Math.round((new Date().getTime() - ts) / 1000);
+                            $('.badge.badge-info').text('Обработка, прошло ' + timer + ' сек.');
+                        }, 1000);
+                    },
+                    success: function () {
+                        notify('Сохранено', 1);
+                    },
+                    error: function (data) {
+                        console.log(data);
+                        notify('Ошибка ' + data.status + ': ' + ('responseJSON' in data ? data.responseJSON['error_msg'] : data.statusText), 0);
+                    },
+                    complete: function () {
+                        $(e.target).fadeIn(50);
+                        clearInterval(load_timer);
+                    }
+                });
+            });
         });
     </script>
     <script>
@@ -144,6 +222,11 @@
                     title: 'Домен',
                     {#sortable: true,#}
                     footerFormatter: totalDomains
+                }, {
+                    field: 'ban',
+                    title: 'Ban',
+                    {#sortable: true,#}
+                    align: 'center'
                 }, {
                     field: 'child',
                     title: 'Поддомены',
@@ -198,9 +281,9 @@
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     data: JSON.stringify($table.bootstrapTable('getSelections')),
-                    beforeSend: function(){
+                    beforeSend: function () {
                         ts = new Date().getTime();
-                        load_timer = setInterval(function(){
+                        load_timer = setInterval(function () {
                             timer = Math.round((new Date().getTime() - ts) / 1000);
                             $('.badge.badge-info').text('Обработка, прошло ' + timer + ' сек.');
                         }, 1000);

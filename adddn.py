@@ -2,9 +2,11 @@
 import os
 import subprocess
 from datetime import datetime
+from time import sleep, time
 
 import bcrypt
 import flask_sqlalchemy
+import requests
 from flask import Flask, render_template, flash, redirect, url_for, jsonify, request
 from flask_login import LoginManager, logout_user, login_user, current_user, login_required
 from flask_session import Session
@@ -12,6 +14,7 @@ from flask_sqlalchemy import SQLAlchemy, BaseQuery
 from sqlalchemy import inspect
 from sqlalchemy.ext.serializer import Serializer
 from werkzeug.contrib.fixers import ProxyFix
+from telegram import Bot
 
 app = Flask(__name__, instance_relative_config=True)
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -32,6 +35,7 @@ app.config['SESSION_TYPE'] = 'redis'
 sess = Session(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "users.login"
+bot = None
 
 
 @login_manager.user_loader
@@ -107,6 +111,8 @@ class Domains(db.Model, Serializer):
     ssl = db.Column(db.Boolean(), default=None)
     child = db.Column(db.Integer)
     hide = db.Column(db.Boolean(), default=False)
+    ban = db.Column(db.Boolean(), default=False)
+    check_time = db.Column(db.Integer)
 
     def __init__(self, name):
         self.name = name
@@ -142,7 +148,7 @@ def page_index():
 
 @app.route('/settings')
 def page_settings():
-    return render_template('settings.html')
+    return render_template('settings.html', upd_time=datetime.fromtimestamp(int(Settings.query.filter_by(key='domains_checked').first().value)))
 
 
 @app.route('/login', methods=['POST'])
@@ -324,8 +330,81 @@ def remove_domains():
     return jsonify({'response': 1})
 
 
+@app.route('/saveConfig', methods=['POST'])
+@login_required
+def save_config():
+    if 'key' not in request.json:
+        return jsonify({'error_msg': 'need key'}), 500
+    s = Settings.query.filter_by(key=request.json['key']).first()
+    if s is None:
+        return jsonify({'error_msg': 'invalid key'}), 500
+    s.value = request.json['value']
+    db.session.commit()
+    init_app()
+    return jsonify({'response': 1})
+
+
+def check_domains():
+    print('Check domains..')
+    # TODO: filter by banned
+    domains = Domains.query.filter_by(pid=0).filter_by(hide=False).filter_by(ban=False).all()
+    url = 'https://graph.facebook.com'
+    data = {
+        'access_token': app.config['FB_TOKEN'],
+        'scrape': True
+    }
+    # TODO: collect limit errors
+    for d in domains:
+        if d.check_time is None or int(time()) > d.check_time + (60 * 15):
+            data['id'] = 'https://' + d.name
+            r = requests.post(url, data=data)
+            # print(r.json())
+            if 'error' in r.json() and r.json()['error']['code'] == 368:
+                bot.send_message(chat_id=app.config['TG_CHAT'], text=f"⚠️ BAN\n{d.name}") if bot else None
+                print(f"⚠ BAN {d.name}")
+                d.ban = True
+            else:
+                d.ban = False
+            app.config['FB_CHECKER'] = r.json()
+            d.check_time = int(time())
+            db.session.commit()
+    Settings.query.filter_by(key='domains_checked').first().value = int(time())
+    db.session.commit()
+
+
+def fb_checker():
+    print('FbChecker enabled')
+    while True:
+        if int(time()) > int(Settings.query.filter_by(key='domains_checked').first().value) + (60 * 10):
+            check_domains()
+        sleep(60)
+
+
 def init_app():
-    db.create_all()
+    # TODO: First install Settings: tg_chat, tg_token, fb_token, domains_checked
+    tg_chat = Settings.query.filter_by(key='tg_chat').first().value
+    tg_token = Settings.query.filter_by(key='tg_token').first().value
+    fb_token = Settings.query.filter_by(key='fb_token').first().value
+
+    app.config['TG_CHAT'] = tg_chat if tg_chat else ''
+    app.config['TG_TOKEN'] = tg_token if tg_chat else ''
+    app.config['FB_TOKEN'] = fb_token if fb_token else ''
+
+    # TODO: app.config['errors'] = [{'name': '', 'message': ''}]
+    global bot
+    try:
+        bot = Bot(app.config['TG_TOKEN'])
+        app.config['TG_BOT'] = 'connected'
+    except Exception as e:
+        app.config['TG_BOT'] = e
+        print(e)
+
+    # if True not in [i.isDaemon() for i in threading.enumerate()]:
+    #     a = threading.Thread(target=fb_checker)
+    #     a.setName('FbChecker')
+    #     a.start()
+    # print(threading.enumerate())
 
 
+db.create_all()
 init_app()

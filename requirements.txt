@@ -7,3 +7,5 @@ flask
 flask-sqlalchemy
 flask-session
 flask-login
+gunicorn
+python-telegram-bot
