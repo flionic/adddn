@@ -310,7 +310,7 @@ def add_domain():
     # TODO: move it to function
     subprocess.call('service nginx reload', shell=True)
 
-    certbot = subprocess.call(f"certbot --nginx -n certonly --webroot -w /var/www/bestplace.live --cert-name {request.json['domain']} -d {request.json['domain']}", shell=True, universal_newlines=True)
+    certbot = subprocess.call(f"certbot -n certonly --webroot -w /var/www/bestplace.live --cert-name {request.json['domain']} -d {request.json['domain']}", shell=True, universal_newlines=True)
 
     if certbot == 0:
         conf = conf.replace('#NOSLL', '').replace('CERT_NAME', request.json['domain'])
