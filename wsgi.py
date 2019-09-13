@@ -1,9 +1,15 @@
 from adddn import app
-from setproctitle import setproctitle
 import cli
 cli.register(app)
-# TODO: rename project to domgen
 
-if __name__ == "__main__":
-    setproctitle(f'{app.config["APP_NAME"]}')
-    app.run(host='0.0.0.0', port=23044, debug=True)
+bind = f"unix:/var/run/{app.config['APP_NAME']}/{app.config['APP_NAME']}.sock"
+workers = app.config['WORKERS']
+pidfile = f"/var/run/{app.config['APP_NAME']}/{app.config['APP_NAME']}.pid"
+accesslog = '-'
+errorlog = '-'
+proc_name = app.config['APP_NAME']
+# umask = 0o07
+daemon = True
+enable_stdio_inheritance = True
+
+# TODO: rename project to domgen
