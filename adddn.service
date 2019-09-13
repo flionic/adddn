@@ -1,28 +1,25 @@
 [Unit]
-Description=Domain Generator
+Description=Domain Generator App
 Documentation=https://domgen.ml
 After=syslog.target
 After=network.target
 After=nginx.service
 Wants=redis.service
+#Triggers=PYTHON SERVICE
 
 [Service]
 User=root
 Group=www-data
-#Type=forking
-PIDFile=/run/adddn/adddn.pid
+Type=forking
+PIDFile=/var/run/adddn/adddn.pid
 WorkingDirectory=/var/www/adddn
-#ExecStart=/usr/bin/python3 /var/www/adddn/wsgi.py
-ExecStart=/var/www/adddn/adddn up
 #Environment="PATH=/var/www/adddn/adddnenv/bin"
-#ExecStart=/var/www/adddn/adddnenv/bin/gunicorn --bind 0.0.0.0:23044 --access-logfile logs/access.log --error-logfile logs/errors.log -D wsgi:app
 Restart=always
-ExecReload=/bin/kill -s HUP $MAINPID
-ExecStop=/bin/kill -s TERM $MAINPID
+ExecStart=/var/www/adddn/adddn --start
+ExecReload=/var/www/adddn/adddn --reload
+ExecStop=/var/www/adddn/adddn --stop
+OOMScoreAdjust=-100
 #PrivateTmp=true
-
-#[Socket]
-#ListenStream=/run/adddn/adddn.sock
 
 [Install]
 WantedBy=multi-user.target
