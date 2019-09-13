@@ -278,7 +278,7 @@ def domain_generator():
                 conf = file.read()
             conf = conf.replace('TEMPLATE_DOMAIN', domain)
             conf = conf.replace('CERT_NAME', domains_new[0])
-            conf = conf.replace('#NOSLL', '').replace('listen 80;', '')
+            conf = conf.replace('#NOSLL', '')
             with open(f"/etc/nginx/sites-available/{domain}", 'w') as file:
                 file.write(conf)
             prefix = 'https'
