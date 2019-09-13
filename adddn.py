@@ -41,6 +41,12 @@ def unauthorized_handler():
     return 'Для этого действия требуется авторизация', 403
 
 
+@app.after_request
+def set_server_header(response):
+    response.headers['server'] = 'flapp-domgen/0.1.0'
+    return response
+
+
 class Serializer(object):
     def serialize(self, include={}, exclude=[], only=[]):
         serialized = {}
