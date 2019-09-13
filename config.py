@@ -6,7 +6,7 @@ load_dotenv(os.path.join(basedir, 'settings.env'))
 
 
 class Config(object):
-    APP_NAME = os.environ.get('APP_NAME') or 'flionic_flask'
+    APP_NAME = os.environ.get('APP_NAME') or 'flionic-app/0.1.0'
     # SERVER_NAME = os.environ.get('SERVER_NAME') or 'localhost'
     # APPLICATION_ROOT = os.environ.get('APPLICATION_ROOT')
     APP_TITLE = os.environ.get('APP_TITLE') or 'Генератор доменов'

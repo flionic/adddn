@@ -1,5 +1,6 @@
-from adddn import app
 import cli
+from adddn import app
+
 cli.register(app)
 
 bind = f"unix:/var/run/{app.config['APP_NAME']}/{app.config['APP_NAME']}.sock"
