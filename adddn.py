@@ -1,4 +1,4 @@
-import os
+from config import Config
 import subprocess
 import threading
 from datetime import datetime
@@ -17,25 +17,19 @@ from werkzeug.contrib.fixers import ProxyFix
 from telegram import Bot
 
 app = Flask(__name__, instance_relative_config=True)
-basedir = os.path.abspath(os.path.dirname(__file__))
+app.config.from_object(Config)
+
 app.jinja_env.trim_blocks = True
 app.jinja_env.lstrip_blocks = True
 app.url_map.strict_slashes = False
 app.wsgi_app = ProxyFix(app.wsgi_app)
-app.config['APP_NAME'] = 'domain_gen'
-app.config['APP_TITLE'] = 'Генератор конфигов'
-app.config['VERSION'] = '1.0.1'
-app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY', '7-DEV_MODE_KEY-7')
 
-db_link = 'sqlite:///' + os.path.join(basedir, 'main.db')
-app.config['SQLALCHEMY_DATABASE_URI'] = db_link
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-app.config['SESSION_TYPE'] = 'redis'
 sess = Session(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "users.login"
-bot = None
+
+bot = None  # TODO: app.config
 
 
 @login_manager.user_loader
@@ -355,6 +349,7 @@ def save_config():
 
 
 def check_domains():
+    # TODO: check PID for it
     print('Check domains..')
     # TODO: filter by banned
     domains = Domains.query.filter_by(pid=0).filter_by(hide=False).filter_by(ban=False).all()
@@ -383,6 +378,7 @@ def check_domains():
 
 
 def fb_checker():
+    # TODO: app.config if not
     print('FbChecker enabled')
     while True:
         if int(time()) > int(Settings.query.filter_by(key='domains_checked').first().value) + (60 * 10):

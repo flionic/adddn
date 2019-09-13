@@ -1,4 +1,3 @@
-CloudFlare
 requests
 setproctitle
 redis
@@ -9,3 +8,4 @@ flask-session
 flask-login
 gunicorn
 python-telegram-bot
+python-dotenv
