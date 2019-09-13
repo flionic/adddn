@@ -24,7 +24,6 @@
             {#TODO: forms for inputs#}
             {#TODO: generate this rows from db#}
             <div class="col-12">
-{#                <p class="">Последняя проверка доменов: <span class="text-success">{{ upd_time | ctime }}</span> (UTC+0)</p>#}
                 <p class="">Последняя проверка доменов: <span class="text-success">{{ upd_time }}</span> (UTC+0)</p>
                 <p class="">Facebook Checker: <span class="text-danger">{{ config['FB_CHECKER'] }}</span></p>
                 <p class="">Telegram Bot: <span class="text-danger">{{ config['TG_BOT'] }}</span></p>
@@ -233,12 +232,12 @@
                     align: 'center',
                     {#sortable: true,#}
                     formatter: childrenFormatter
-                }, {
-                    field: 'id',
-                    title: 'ID',
-                    {#sortable: true,#}
-                    align: 'center'
-                }],
+                }{#, {
+                   field: 'id',
+                   title: 'ID',
+                    sortable: true,
+                   align: 'center'
+                }#}],
                 treeShowField: 'name',
                 parentIdField: 'pid',
                 onPostBody: function () {
