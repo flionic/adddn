@@ -1,26 +1,46 @@
 #!/bin/sh
 
+export $(cat /var/www/adddn/settings.env | xargs)
+
 exit_with_usage ()
 {
-    echo "Usage: $0 up|down|restart|update|info|log|routes|debug|install|config"
+    echo "Usage: $APP_NAME [COMMAND]"
+    echo ""
+    echo "$APP_NAME commands:"
+    echo "  up                launch app"
+    echo "  down              shutdown app"
+    echo "  refresh           update app for apply changes in files"
+    echo "  reboot            restart app"
+    echo "  service           show app service"
+    echo "  info              show app status"
+    echo "  task              show app task info"
+    echo "  workers           list of app workers"
+    echo "  flask             flask cli"
+    echo "  install           install app cli to system"
+    echo "  config            configure your app"
+    echo "  debug             launch app in debug mode"
+    echo "  log               show full app log"
+    echo "  log -f            open real-time app log"
+    echo "  log -json         get app log in json"
+    echo "  help, --help, -h  show this message"
     exit $1
 }
 
-# export FLASK_APP=wsgi:app
-cd /var/www/adddn/
+cd ${APPLICATION_ROOT}
 
 if [ "$1" = "" ] ; then
     exit_with_usage 1
 fi
 
 # Scan for --help or unknown argument.
-for ARG in $*
+for ARG in $1
+#for ARG in $*
 do
     case $ARG in
         --help|-h|help)
             exit_with_usage 0
         ;;
-        up|down|restart|update|info|log|routes|debug|install|config)
+        --start|--reload|--stop|up|down|refresh|reboot|service|info|task|workers|flask|install|config|debug|log|log-f|log-json)
         ;;
         *)
             exit_with_usage 1
@@ -28,41 +48,70 @@ do
     esac
 done
 
-for ARG in "$@"
+#for ARG in "$@"
+for ARG in "$1"
 do
     case "$ARG" in
+        # TODO: move all cmd to cli.py
+        --start)
+#            /usr/local/bin/gunicorn --bind unix:/var/run/adddn/adddn.sock --workers 3 -p /var/run/adddn/adddn.pid -n adddn -m 007 --access-logfile - --error-logfile - -D -R wsgi:app
+            /usr/local/bin/gunicorn wsgi:app -c python:wsgi
+        ;;
+        --reload)
+            pkill -HUP -F /var/run/${APP_NAME}/${APP_NAME}.pid
+        ;;
+        --stop)
+            pkill -TERM -F /var/run/${APP_NAME}/${APP_NAME}.pid
+        ;;
         up)
-            #service adddn start
-            /usr/local/bin/gunicorn --bind unix:/run/adddn/adddn.sock --workers 3 -p /run/adddn/adddn.pid -n adddn -m 007 --access-logfile - --error-logfile - -R wsgi:app
+            service ${APP_NAME} start
         ;;
         down)
-            service adddn stop
+            service ${APP_NAME} stop
         ;;
-        restart)
-            service adddn restart
+        refresh)
+            service ${APP_NAME} reload
         ;;
-        update)
-            service adddn reload
+        reboot)
+            service ${APP_NAME} restart
+        ;;
+        service)
+            service ${APP_NAME} status
         ;;
         info)
-            service adddn status | grep Active
+            service ${APP_NAME} status | grep Active
         ;;
-        log)
-            journalctl -e -f -u adddn -o cat
+        task)
+            ps u --pid $(cat /var/run/${APP_NAME}/${APP_NAME}.pid)
         ;;
-        routes)
-            flask routes
+        workers)
+            ps u --ppid $(cat /var/run/${APP_NAME}/${APP_NAME}.pid)|awk 'FNR==1 {print "                               PID  %CPU  %MEM   START   TIME"} FNR >1 {print $13" "$11" "$12" "FNR-1"   "$2"   "$3"   "$4"   "$9"   "$10}'
+        ;;
+        flask)
+            fi=$1
+            shift;
+            /usr/local/bin/flask $@
+        ;;
+        install)
+            ln -fs ${APPLICATION_ROOT}/${APP_NAME} /usr/bin/${APP_NAME}
+            echo "Now you can use $APP_NAME cli"
+        ;;
+        config)
+            echo "$0 $1"
         ;;
         debug)
             export FLASK_ENV=testing
             export FLASK_DEBUG=1
-            flask run -p 23044
+            flask run -p ${DEBUG_PORT}
         ;;
-        install)
-            echo "$0"
+        log)
+            journalctl -e -u ${APP_NAME} -o cat
         ;;
-        config)
-            echo "$1"
+        log-f)
+            journalctl -e -f -u ${APP_NAME} -o cat
+        ;;
+        log-json)
+            journalctl -u ${APP_NAME} -o json-pretty -r
         ;;
 esac
 done
